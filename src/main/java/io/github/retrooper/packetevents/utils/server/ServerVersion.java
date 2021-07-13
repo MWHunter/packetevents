@@ -174,10 +174,10 @@ public enum ServerVersion {
          * The first one we find in the array is the newer version.
          */
         for (ServerVersion version : reversedValues) {
-            if (version == target) {
-                return false;
-            }
+            if (version == this) return true;
+            if (version == target) return false;
         }
+
         return false;
     }
 
