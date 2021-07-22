@@ -58,9 +58,8 @@ public class WrappedPacketOutEntityDestroy extends WrappedPacketEntityAbstractio
 
     @Override
     protected void load() {
+        v_1_17 = version.isNewerThanOrEquals(ServerVersion.v_1_17);
         v_1_17_1 = version.isNewerThanOrEquals(ServerVersion.v_1_17_1);
-        v_1_17 = version.equals(ServerVersion.v_1_17);
-
         try {
             if (v_1_17) {
                 packetConstructor =
@@ -84,6 +83,13 @@ public class WrappedPacketOutEntityDestroy extends WrappedPacketEntityAbstractio
             else {
                 return entityIds[0];
             }
+        }
+        if (v_1_17_1) {
+            IntList list = readObject(0, IntList.class);
+            entityID = list.get(0);
+        }
+        else if (v_1_17) {
+            entityID = readInt(0);
         }
         else {
             if (v_1_17_1) {
@@ -139,8 +145,12 @@ public class WrappedPacketOutEntityDestroy extends WrappedPacketEntityAbstractio
                 return readIntArray(0);
             }
         } else {
-           if (v_1_17) {
-                return new int[] {entityID};
+            if (v_1_17_1) {
+                IntList list = readObject(0, IntList.class);
+                return Optional.of(list.toIntArray());
+            }
+            else if (v_1_17) {
+                return Optional.of(new int[] {entityID});
             }
             else {
                 return entityIds;
