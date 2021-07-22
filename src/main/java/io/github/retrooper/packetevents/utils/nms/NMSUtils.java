@@ -21,7 +21,6 @@ package io.github.retrooper.packetevents.utils.nms;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
-import io.github.retrooper.packetevents.utils.entityfinder.EntityFinderUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.reflection.SubclassUtil;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
@@ -47,7 +46,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class NMSUtils {
-    private static boolean v_1_17;
     public static final String NMS_DIR = ServerVersion.getNMSDirectory() + ".";
     public static final String OBC_DIR = ServerVersion.getOBCDirectory() + ".";
     private static final ThreadLocal<Random> randomThreadLocal = ThreadLocal.withInitial(Random::new);
@@ -58,7 +56,7 @@ public final class NMSUtils {
             craftPlayerClass, serverConnectionClass, craftEntityClass, nmsItemStackClass, networkManagerClass, nettyChannelClass, gameProfileClass, iChatBaseComponentClass,
             blockPosClass, vec3DClass, channelFutureClass, blockClass, iBlockDataClass, nmsWorldClass, craftItemStackClass,
             soundEffectClass, minecraftKeyClass, chatSerializerClass, craftMagicNumbersClass, worldSettingsClass, worldServerClass, dataWatcherClass,
-            dedicatedServerClass, entityHumanClass, packetDataSerializerClass, byteBufClass, dimensionManagerClass, nmsItemClass, movingObjectPositionBlock;
+            dedicatedServerClass, entityHumanClass, packetDataSerializerClass, byteBufClass, dimensionManagerClass, nmsItemClass, movingObjectPositionBlockClass;
     public static Class<? extends Enum<?>> enumDirectionClass, enumHandClass, enumGameModeClass, enumDifficultyClass;
     public static Method getBlockPosX, getBlockPosY, getBlockPosZ;
     private static String nettyPrefix;
@@ -70,9 +68,6 @@ public final class NMSUtils {
     private static Object minecraftServerConnection;
 
     public static void load() {
-        if (version.isNewerThanOrEquals(ServerVersion.v_1_17)) {
-            v_1_17 = true;
-        }
         String legacyNettyPrefix = "net.minecraft.util.io.netty.";
         String newNettyPrefix = "io.netty.";
         if (version.isNewerThan(ServerVersion.v_1_7_10)) {
@@ -233,10 +228,10 @@ public final class NMSUtils {
         }
 
         if (version.isNewerThanOrEquals(ServerVersion.v_1_14)) {
-            movingObjectPositionBlock = NMSUtils.getNMSClassWithoutException("MovingObjectPositionBlock");
+            movingObjectPositionBlockClass = NMSUtils.getNMSClassWithoutException("MovingObjectPositionBlock");
 
-            if (movingObjectPositionBlock == null) {
-                movingObjectPositionBlock = getNMClassWithoutException("world.phys.MovingObjectPositionBlock");
+            if (movingObjectPositionBlockClass == null) {
+                movingObjectPositionBlockClass = getNMClassWithoutException("world.phys.MovingObjectPositionBlock");
             }
         }
         try {
@@ -644,7 +639,19 @@ public final class NMSUtils {
         return minecraftKeyWrapper.readString(1);
     }
 
-    public static Object generateMinecraftKey(String text) {
+    public static String[] splitMinecraftKey(String var0, char var1) {
+        String[] array = new String[]{"minecraft", var0};
+        int index = var0.indexOf(var1);
+        if (index >= 0) {
+            array[1] = var0.substring(index + 1);
+            if (index >= 1) {
+                array[0] = var0.substring(0, index);
+            }
+        }
+        return array;
+    }
+
+    public static Object generateMinecraftKeyNew(String text) {
         try {
             return minecraftKeyConstructor.newInstance(text);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
