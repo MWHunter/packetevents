@@ -39,6 +39,7 @@ import java.util.List;
  * @since 1.6.9
  */
 public enum ClientVersion {
+    V_1_7_5(4),
     V_1_7_10(5),
 
     V_1_8(47),
