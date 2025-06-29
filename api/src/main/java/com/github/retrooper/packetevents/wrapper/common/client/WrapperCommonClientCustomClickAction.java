@@ -45,7 +45,7 @@ public class WrapperCommonClientCustomClickAction<T extends WrapperCommonClientC
     @Override
     public void read() {
         this.id = ResourceLocation.read(this);
-        this.payload = this.readLengthPrefixed(MAX_PAYLOAD_SIZE, PacketWrapper::readNBTRaw);
+        this.payload = this.readLengthPrefixed(MAX_PAYLOAD_SIZE, PacketWrapper::readNullableNBT);
     }
 
     @Override
