@@ -54,7 +54,7 @@ public class InternalBukkitListener implements Listener {
             if (!FakeChannelUtil.isFakeChannel(channel) && (!PacketEvents.getAPI().isTerminated() || PacketEvents.getAPI().getSettings().isKickIfTerminated())) {
                 //Kick them, if they are not a fake player.
                 FoliaScheduler.getEntityScheduler().runDelayed(player, plugin, (o) -> {
-                    player.kickPlayer("PacketEvents 2.0 failed to inject");
+                    player.kickPlayer("PacketEvents failed to inject into a channel.");
                 }, null, 0);
             }
             return;
@@ -76,7 +76,7 @@ public class InternalBukkitListener implements Listener {
             if (channel == null || !FakeChannelUtil.isFakeChannel(channel) && (!PacketEvents.getAPI().isTerminated() || PacketEvents.getAPI().getSettings().isKickIfTerminated())) {
                 //Kick them, if they are not a fake player.
                 FoliaScheduler.getEntityScheduler().runDelayed(player, plugin, (o) -> {
-                    player.kickPlayer("PacketEvents 2.0 failed to inject");
+                    player.kickPlayer("PacketEvents failed to inject into a channel.");
                 }, null, 0);
             }
             // Set bukkit player object in the injectors

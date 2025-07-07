@@ -45,8 +45,9 @@ public class ServerManagerImpl implements ServerManager {
         if (version.isNewerThan(latestVersion)) {
             //We do not support this version yet, so let us warn the user
             plugin.getLogger().warning("[packetevents] We currently do not support the Minecraft version "
-                    + version + ", so things might break. PacketEvents will behave as if the Minecraft version were "
-                    + latestVersion + "!");
+                    + version + "! The latest Minecraft version supported by PacketEvents is " + latestVersion
+                    + ". Please test the development builds, as they may already have support for your Minecraft version (hint: select the build that contains 'spigot'): https://ci.codemc.io/job/retrooper/job/packetevents/\nIf you're in need of any help, join our Discord server: https://discord.gg/DVHxPPxHZc");
+            Bukkit.getPluginManager().disablePlugin(plugin);
             return ServerVersion.getLatest();
         }
         for (final ServerVersion val : ServerVersion.reversedValues()) {
@@ -56,7 +57,7 @@ public class ServerManagerImpl implements ServerManager {
             }
         }
 
-        plugin.getLogger().warning("[packetevents] Your server software is preventing us from checking the Minecraft Server version. This is what we found: " + Bukkit.getBukkitVersion() + ". We will assume the Server version is " + fallbackVersion.name() + "...");
+        plugin.getLogger().warning("[packetevents] Your server software is preventing us from checking the Minecraft Server version. This is what we found: " + Bukkit.getBukkitVersion() + ". We will assume the Server version is " + fallbackVersion.name() + "...\n If you need assistance, join our Discord server: https://discord.gg/DVHxPPxHZc");
         return fallbackVersion;
     }
 
