@@ -144,7 +144,7 @@ public class SpigotPacketEventsBuilder {
                     // Our PEVersion class can parse this version and detect if it is a newer version than what is currently supported
                     PEVersion bukkitServerVersion = PEVersion.fromString(bukkitVersion.substring(0, bukkitVersion.indexOf("-")));
                     PEVersion latestSupportedVersion = PEVersion.fromString(ServerVersion.getLatest().getReleaseName());
-                    if (true) { //bukkitServerVersion.isNewerThan(latestSupportedVersion)
+                    if (bukkitServerVersion.isNewerThan(latestSupportedVersion)) {
                         //We do not support this version yet, so let us warn the user
                         plugin.getLogger().warning("Your build of PacketEvents does not support the Minecraft version "
                                 + bukkitServerVersion + "! The latest Minecraft version supported by your build of PacketEvents is " + latestSupportedVersion
