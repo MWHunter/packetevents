@@ -18,9 +18,6 @@
 
 package io.github.retrooper.packetevents.util.folia;
 
-import io.github.retrooper.packetevents.util.folia.task.BukkitTaskWrapper;
-import io.github.retrooper.packetevents.util.folia.task.FoliaTaskWrapper;
-import io.github.retrooper.packetevents.util.folia.task.TaskWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
@@ -80,10 +77,10 @@ public class EntityScheduler {
      */
     public TaskWrapper run(@NotNull Entity entity, @NotNull Plugin plugin, @NotNull Consumer<Object> task, @Nullable Runnable retired) {
         if (!FoliaScheduler.isFolia) {
-            return new BukkitTaskWrapper(bukkitScheduler.runTask(plugin, () -> task.accept(null)));
+            return new TaskWrapper(bukkitScheduler.runTask(plugin, () -> task.accept(null)));
         }
 
-        return new FoliaTaskWrapper(entity.getScheduler().run(plugin, (o) -> task.accept(null), retired));
+        return new TaskWrapper(entity.getScheduler().run(plugin, (o) -> task.accept(null), retired));
     }
 
     /**
@@ -104,10 +101,10 @@ public class EntityScheduler {
         if (delayTicks < 1) delayTicks = 1;
 
         if (!FoliaScheduler.isFolia) {
-            return new BukkitTaskWrapper(bukkitScheduler.runTaskLater(plugin, () -> task.accept(null), delayTicks));
+            return new TaskWrapper(bukkitScheduler.runTaskLater(plugin, () -> task.accept(null), delayTicks));
         }
 
-        return new FoliaTaskWrapper(entity.getScheduler().runDelayed(plugin, (o) -> task.accept(null), retired, delayTicks));
+        return new TaskWrapper(entity.getScheduler().runDelayed(plugin, (o) -> task.accept(null), retired, delayTicks));
     }
 
     /**
@@ -130,9 +127,9 @@ public class EntityScheduler {
         if (periodTicks < 1) periodTicks = 1;
 
         if (!FoliaScheduler.isFolia) {
-            return new BukkitTaskWrapper(bukkitScheduler.runTaskTimer(plugin, () -> task.accept(null), initialDelayTicks, periodTicks));
+            return new TaskWrapper(bukkitScheduler.runTaskTimer(plugin, () -> task.accept(null), initialDelayTicks, periodTicks));
         }
 
-        return new FoliaTaskWrapper(entity.getScheduler().runAtFixedRate(plugin, (o) -> task.accept(null), retired, initialDelayTicks, periodTicks));
+        return new TaskWrapper(entity.getScheduler().runAtFixedRate(plugin, (o) -> task.accept(null), retired, initialDelayTicks, periodTicks));
     }
 }

@@ -18,9 +18,6 @@
 
 package io.github.retrooper.packetevents.util.folia;
 
-import io.github.retrooper.packetevents.util.folia.task.BukkitTaskWrapper;
-import io.github.retrooper.packetevents.util.folia.task.FoliaTaskWrapper;
-import io.github.retrooper.packetevents.util.folia.task.TaskWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -68,10 +65,10 @@ public class GlobalRegionScheduler {
      */
     public TaskWrapper run(@NotNull Plugin plugin, @NotNull Consumer<Object> task) {
         if (!FoliaScheduler.isFolia) {
-            return new BukkitTaskWrapper(bukkitScheduler.runTask(plugin, () -> task.accept(null)));
+            return new TaskWrapper(bukkitScheduler.runTask(plugin, () -> task.accept(null)));
         }
 
-        return new FoliaTaskWrapper(globalRegionScheduler.run(plugin, (o) -> task.accept(null)));
+        return new TaskWrapper(globalRegionScheduler.run(plugin, (o) -> task.accept(null)));
     }
 
     /**
@@ -86,10 +83,10 @@ public class GlobalRegionScheduler {
         if (delay < 1) delay = 1;
 
         if (!FoliaScheduler.isFolia) {
-            return new BukkitTaskWrapper(bukkitScheduler.runTaskLater(plugin, () -> task.accept(null), delay));
+            return new TaskWrapper(bukkitScheduler.runTaskLater(plugin, () -> task.accept(null), delay));
         }
 
-        return new FoliaTaskWrapper(globalRegionScheduler.runDelayed(plugin, (o) -> task.accept(null), delay));
+        return new TaskWrapper(globalRegionScheduler.runDelayed(plugin, (o) -> task.accept(null), delay));
     }
 
     /**
@@ -106,10 +103,10 @@ public class GlobalRegionScheduler {
         if (periodTicks < 1) periodTicks = 1;
 
         if (!FoliaScheduler.isFolia) {
-            return new BukkitTaskWrapper(bukkitScheduler.runTaskTimer(plugin, () -> task.accept(null), initialDelayTicks, periodTicks));
+            return new TaskWrapper(bukkitScheduler.runTaskTimer(plugin, () -> task.accept(null), initialDelayTicks, periodTicks));
         }
 
-        return new FoliaTaskWrapper(globalRegionScheduler.runAtFixedRate(plugin, (o) -> task.accept(null), initialDelayTicks, periodTicks));
+        return new TaskWrapper(globalRegionScheduler.runAtFixedRate(plugin, (o) -> task.accept(null), initialDelayTicks, periodTicks));
     }
 
     /**
