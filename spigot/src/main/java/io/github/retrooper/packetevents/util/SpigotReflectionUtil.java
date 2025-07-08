@@ -33,36 +33,19 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.MapMaker;
 import io.netty.buffer.PooledByteBufAllocator;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
-import org.bukkit.Registry;
-import org.bukkit.Server;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -104,14 +87,15 @@ public final class SpigotReflectionUtil {
             DYNAMIC_OPS_NBT_CLASS, NMS_NBT_COMPOUND_CLASS, NMS_NBT_BASE_CLASS, NBT_COMPRESSION_STREAM_TOOLS_CLASS,
             STREAM_CODEC, STREAM_DECODER, STREAM_ENCODER, REGISTRY_FRIENDLY_BYTE_BUF, REGISTRY_ACCESS, REGISTRY_ACCESS_FROZEN,
             RESOURCE_KEY, REGISTRY, WRITABLE_REGISTRY, NBT_ACCOUNTER, CHUNK_PROVIDER_SERVER_CLASS, ICHUNKPROVIDER_CLASS, CHUNK_STATUS_CLASS,
-            BLOCK_POSITION_CLASS, PLAYER_CHUNK_MAP_CLASS, PLAYER_CHUNK_CLASS, CHUNK_CLASS, IBLOCKACCESS_CLASS, ICHUNKACCESS_CLASS;
+            BLOCK_POSITION_CLASS, PLAYER_CHUNK_MAP_CLASS, PLAYER_CHUNK_CLASS, CHUNK_CLASS, IBLOCKACCESS_CLASS, ICHUNKACCESS_CLASS, REMOTE_CHAT_SESSION_CLASS;
 
     //Netty classes
     public static Class<?> CHANNEL_CLASS, BYTE_BUF_CLASS, BYTE_TO_MESSAGE_DECODER, MESSAGE_TO_BYTE_ENCODER;
 
     //Fields
     public static Field ENTITY_PLAYER_PING_FIELD, ENTITY_BOUNDING_BOX_FIELD, BYTE_BUF_IN_PACKET_DATA_SERIALIZER, DIMENSION_CODEC_FIELD,
-            DYNAMIC_OPS_NBT_INSTANCE_FIELD, CHUNK_PROVIDER_SERVER_FIELD, CRAFT_PARTICLE_PARTICLES_FIELD, NMS_MK_KEY_FIELD, LEGACY_NMS_PARTICLE_KEY_FIELD, LEGACY_NMS_KEY_TO_NMS_PARTICLE;
+            DYNAMIC_OPS_NBT_INSTANCE_FIELD, CHUNK_PROVIDER_SERVER_FIELD, CRAFT_PARTICLE_PARTICLES_FIELD, NMS_MK_KEY_FIELD, LEGACY_NMS_PARTICLE_KEY_FIELD, LEGACY_NMS_KEY_TO_NMS_PARTICLE,
+            REMOTE_CHAT_SESSION_FIELD;
 
     //Methods
     public static Method IS_DEBUGGING, GET_CRAFT_PLAYER_HANDLE_METHOD, GET_CRAFT_ENTITY_HANDLE_METHOD, GET_CRAFT_WORLD_HANDLE_METHOD,
@@ -303,6 +287,8 @@ public final class SpigotReflectionUtil {
             //It's not inside the Level class (NMS World) class, which is how it was on < 1.21 Paper
             PAPER_ENTITY_LOOKUP_LEGACY = Reflection.getField(LEVEL_CLASS, PAPER_ENTITY_LOOKUP_CLASS, 0) == null;
         }
+
+        REMOTE_CHAT_SESSION_FIELD = Reflection.getField(ENTITY_PLAYER_CLASS, REMOTE_CHAT_SESSION_CLASS, 0);
     }
 
     private static void initClasses() {
@@ -398,6 +384,8 @@ public final class SpigotReflectionUtil {
         RESOURCE_KEY = getServerClass("resources.ResourceKey", "ResourceKey");
         REGISTRY = getServerClass(IS_OBFUSCATED ? "core.IRegistry" : "core.Registry", "IRegistry");
         WRITABLE_REGISTRY = getServerClass(IS_OBFUSCATED ? "core.IRegistryWritable" : "core.WritableRegistry", "IRegistryWritable");
+
+        REMOTE_CHAT_SESSION_CLASS = Reflection.getClassByNameWithoutException("net.minecraft.network.chat.RemoteChatSession");
     }
 
     private static void initObjects() {
@@ -1068,6 +1056,7 @@ public final class SpigotReflectionUtil {
 
     /**
      * Get the entity by the id.
+     *
      * @deprecated Please resort to {@link SpigotConversionUtil#getEntityById(World, int)} since the reflection util is not API.
      */
     @Deprecated
@@ -1090,6 +1079,7 @@ public final class SpigotReflectionUtil {
 
     /**
      * Get the entity by the id.
+     *
      * @deprecated Please resort to {@link SpigotConversionUtil#getEntityById(World, int)} since the reflection util is not API.
      */
     @Deprecated
@@ -1184,4 +1174,13 @@ public final class SpigotReflectionUtil {
         return null;
     }
 
+    public static Object getRemoteChatSession(Player player) {
+        Object entityPlayer = getEntityPlayer(player);
+        try {
+            return REMOTE_CHAT_SESSION_FIELD.get(entityPlayer);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
