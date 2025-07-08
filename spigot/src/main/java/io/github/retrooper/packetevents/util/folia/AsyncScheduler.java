@@ -18,9 +18,6 @@
 
 package io.github.retrooper.packetevents.util.folia;
 
-import io.github.retrooper.packetevents.util.folia.task.BukkitTaskWrapper;
-import io.github.retrooper.packetevents.util.folia.task.FoliaTaskWrapper;
-import io.github.retrooper.packetevents.util.folia.task.TaskWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -54,10 +51,10 @@ public class AsyncScheduler {
      */
     public TaskWrapper runNow(@NotNull Plugin plugin, @NotNull Consumer<Object> task) {
         if (!FoliaScheduler.isFolia) {
-            return new BukkitTaskWrapper(bukkitScheduler.runTaskAsynchronously(plugin, () -> task.accept(null)));
+            return new TaskWrapper(bukkitScheduler.runTaskAsynchronously(plugin, () -> task.accept(null)));
         }
 
-        return new FoliaTaskWrapper(asyncScheduler.runNow(plugin, (o) -> task.accept(null)));
+        return new TaskWrapper(asyncScheduler.runNow(plugin, (o) -> task.accept(null)));
     }
 
     /**
@@ -71,10 +68,10 @@ public class AsyncScheduler {
      */
     public TaskWrapper runDelayed(@NotNull Plugin plugin, @NotNull Consumer<Object> task, long delay, @NotNull TimeUnit timeUnit) {
         if (!FoliaScheduler.isFolia) {
-            return new BukkitTaskWrapper(bukkitScheduler.runTaskLaterAsynchronously(plugin, () -> task.accept(null), convertTimeToTicks(delay, timeUnit)));
+            return new TaskWrapper(bukkitScheduler.runTaskLaterAsynchronously(plugin, () -> task.accept(null), convertTimeToTicks(delay, timeUnit)));
         }
 
-        return new FoliaTaskWrapper(asyncScheduler.runDelayed(plugin, (o) -> task.accept(null), delay, timeUnit));
+        return new TaskWrapper(asyncScheduler.runDelayed(plugin, (o) -> task.accept(null), delay, timeUnit));
     }
 
     /**
@@ -91,10 +88,10 @@ public class AsyncScheduler {
         if (period < 1) period = 1;
 
         if (!FoliaScheduler.isFolia) {
-            return new BukkitTaskWrapper(bukkitScheduler.runTaskTimerAsynchronously(plugin, () -> task.accept(null), convertTimeToTicks(delay, timeUnit), convertTimeToTicks(period, timeUnit)));
+            return new TaskWrapper(bukkitScheduler.runTaskTimerAsynchronously(plugin, () -> task.accept(null), convertTimeToTicks(delay, timeUnit), convertTimeToTicks(period, timeUnit)));
         }
 
-        return new FoliaTaskWrapper(asyncScheduler.runAtFixedRate(plugin, (o) -> task.accept(null), delay, period, timeUnit));
+        return new TaskWrapper(asyncScheduler.runAtFixedRate(plugin, (o) -> task.accept(null), delay, period, timeUnit));
     }
 
     /**
@@ -110,10 +107,10 @@ public class AsyncScheduler {
         if (periodTicks < 1) periodTicks = 1;
 
         if (!FoliaScheduler.isFolia) {
-            return new BukkitTaskWrapper(bukkitScheduler.runTaskTimerAsynchronously(plugin, () -> task.accept(null), initialDelayTicks, periodTicks));
+            return new TaskWrapper(bukkitScheduler.runTaskTimerAsynchronously(plugin, () -> task.accept(null), initialDelayTicks, periodTicks));
         }
 
-        return new FoliaTaskWrapper(asyncScheduler.runAtFixedRate(plugin, (o) -> task.accept(null), initialDelayTicks * 50, periodTicks * 50, TimeUnit.MILLISECONDS));
+        return new TaskWrapper(asyncScheduler.runAtFixedRate(plugin, (o) -> task.accept(null), initialDelayTicks * 50, periodTicks * 50, TimeUnit.MILLISECONDS));
     }
 
     /**
