@@ -33,36 +33,19 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.MapMaker;
 import io.netty.buffer.PooledByteBufAllocator;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
-import org.bukkit.Registry;
-import org.bukkit.Server;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -184,7 +167,7 @@ public final class SpigotReflectionUtil {
         }
         if (DIMENSION_MANAGER_CLASS != null) {
             if (PacketEvents.getAPI().getServerManager().getVersion() == ServerVersion.V_1_16
-                || PacketEvents.getAPI().getServerManager().getVersion() == ServerVersion.V_1_16_1) {
+                    || PacketEvents.getAPI().getServerManager().getVersion() == ServerVersion.V_1_16_1) {
                 GET_DIMENSION_KEY = Reflection.getMethod(LEVEL_CLASS, "getTypeKey", 0);
             }
             GET_DIMENSION_MANAGER = Reflection.getMethod(LEVEL_CLASS, DIMENSION_MANAGER_CLASS, 0);
@@ -236,7 +219,7 @@ public final class SpigotReflectionUtil {
             }
         }
         if (VERSION.isNewerThanOrEquals(ServerVersion.V_1_20_2)
-            && VERSION.isOlderThan(ServerVersion.V_1_20_5)) {
+                && VERSION.isOlderThan(ServerVersion.V_1_20_5)) {
             // somehow the "b" method is before the "a" method on 1.20.2 to 1.20.4
             WRITE_NBT_TO_STREAM_METHOD = Reflection.getMethod(NBT_COMPRESSION_STREAM_TOOLS_CLASS,
                     "a", NMS_NBT_BASE_CLASS, DataOutput.class);
@@ -559,7 +542,7 @@ public final class SpigotReflectionUtil {
     public static List<TextureProperty> getUserProfile(Player player) {
         if (PROPERTY_MAP_CLASS == null) {
             PROPERTY_MAP_CLASS = Reflection.getClassByNameWithoutException("" +
-                                                                           "com.mojang.authlib.properties.PropertyMap");
+                    "com.mojang.authlib.properties.PropertyMap");
             PROPERTY_MAP_GET_METHOD = Reflection.getMethodExact(PROPERTY_MAP_CLASS, "get", Collection.class, Object.class);
         }
 
