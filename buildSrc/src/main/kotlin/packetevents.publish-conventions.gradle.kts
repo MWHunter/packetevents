@@ -60,6 +60,8 @@ configure<ModPublishExtension> {
                 start = property("publishing.modrinth.version.start").toString()
                 end = property("publishing.modrinth.version.end").toString()
             }
+            val loadersStr = property("publishing.modrinth.loaders").toString()
+            modLoaders.addAll(loadersStr.split(","))
         }
     }
 }
