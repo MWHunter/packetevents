@@ -23,10 +23,13 @@ jobs:
           java-version: 21
           distribution: temurin
 
+      - name: Prepare gradle
+        run: ./gradlew printVersion --no-daemon
+
       - name: Extract changelog
         id: changelog
         run: |
-          TAG_NAME="v$(./gradlew -q printVersion)"
+          TAG_NAME="v$(./gradlew -q --no-daemon printVersion)"
           awk -v tag="${TAG_NAME}" '
             $1 == "!!!!!" && $2 == tag {found=1; next}
             $1 == "!!!!!" && found {exit}
