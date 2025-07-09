@@ -1075,7 +1075,7 @@ public final class PacketType {
             USE_BED(WrapperPlayServerUseBed.class),
             SPAWN_WEATHER_ENTITY(WrapperPlayServerSpawnWeatherEntity.class),
             TITLE(WrapperPlayServerSetTitleSubtitle.class),
-            WORLD_BORDER(WrapperPlayServerInitializeWorldBorder.class),
+            WORLD_BORDER(WrapperPlayServerWorldBorder.class),
             COMBAT_EVENT(WrapperPlayServerCombatEvent.class),
             ENTITY_MOVEMENT(WrapperPlayServerEntityMovement.class),
             SPAWN_LIVING_ENTITY(WrapperPlayServerSpawnLivingEntity.class),
