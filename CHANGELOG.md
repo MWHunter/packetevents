@@ -1,9 +1,3 @@
-!!!!! v2.9.0
-
-# PacketEvents 2.9.0 is out now! 🎉
-
-Epic update, go download now!
-
 !!!!! v2.8.0
 
 # PacketEvents 2.8.0 is out now! 🎉
