@@ -204,6 +204,46 @@ public class WrapperPlayServerWorldBorder extends PacketWrapper<WrapperPlayServe
         return this.warningBlocks;
     }
 
+    public void setAction(WorldBorderAction action) {
+        this.action = action;
+    }
+
+    public void setRadius(double radius) {
+        this.radius = radius;
+    }
+
+    public void setOldRadius(double oldRadius) {
+        this.oldRadius = oldRadius;
+    }
+
+    public void setNewRadius(double newRadius) {
+        this.newRadius = newRadius;
+    }
+
+    public void setSpeed(long speed) {
+        this.speed = speed;
+    }
+
+    public void setCenterX(double centerX) {
+        this.centerX = centerX;
+    }
+
+    public void setCenterZ(double centerZ) {
+        this.centerZ = centerZ;
+    }
+
+    public void setPortalTeleportBoundary(int portalTeleportBoundary) {
+        this.portalTeleportBoundary = portalTeleportBoundary;
+    }
+
+    public void setWarningTime(int warningTime) {
+        this.warningTime = warningTime;
+    }
+
+    public void setWarningBlocks(int warningBlocks) {
+        this.warningBlocks = warningBlocks;
+    }
+
     public enum WorldBorderAction {
         SET_SIZE(1),
         LERP_SIZE(2),
