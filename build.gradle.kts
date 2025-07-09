@@ -2,6 +2,9 @@ plugins {
     packetevents.`publish-conventions`
 }
 
+// properties are all set as string, convert to boolean
+ext["snapshot"] = ext["snapshot"].toString().toBooleanStrict()
+
 ext["commitHash"] = providers.exec {
     commandLine("git", "rev-parse", "--short", "HEAD")
 }.standardOutput.asText.map { it.trim() }.getOrElse("unknown")
