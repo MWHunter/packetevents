@@ -95,7 +95,7 @@ public final class SpigotReflectionUtil {
     //Minecraft classes
     public static Class<?> MINECRAFT_SERVER_CLASS, NMS_PACKET_DATA_SERIALIZER_CLASS, NMS_ITEM_STACK_CLASS,
             NMS_IMATERIAL_CLASS, NMS_ENTITY_CLASS, ENTITY_PLAYER_CLASS, BOUNDING_BOX_CLASS, NMS_MINECRAFT_KEY_CLASS,
-            ENTITY_HUMAN_CLASS, PLAYER_CONNECTION_CLASS, SERVER_COMMON_PACKETLISTENER_IMPL_CLASS, SERVER_CONNECTION_CLASS, NETWORK_MANAGER_CLASS, NMS_ENUM_PARTICLE_CLASS,
+            ENTITY_HUMAN_CLASS, PLAYER_CONNECTION_CLASS, TRANSFER_COOKIE_CONNECTION_CLASS, SERVER_LOGIN_PACKET_LISTENER_IMPL_CLASS, SERVER_COMMON_PACKETLISTENER_IMPL_CLASS, SERVER_CONNECTION_CLASS, NETWORK_MANAGER_CLASS, NMS_ENUM_PARTICLE_CLASS,
             MOB_EFFECT_LIST_CLASS, NMS_ITEM_CLASS, DEDICATED_SERVER_CLASS, LEVEL_CLASS, SERVER_LEVEL_CLASS, ENUM_PROTOCOL_DIRECTION_CLASS,
             GAME_PROFILE_CLASS, CRAFT_WORLD_CLASS, CRAFT_SERVER_CLASS, CRAFT_PLAYER_CLASS, CRAFT_ENTITY_CLASS, CRAFT_ITEM_STACK_CLASS, CRAFT_PARTICLE_CLASS,
             LEVEL_ENTITY_GETTER_CLASS, ENTITY_ACCESS_CLASS, PERSISTENT_ENTITY_SECTION_MANAGER_CLASS, PAPER_ENTITY_LOOKUP_CLASS, CRAFT_MAGIC_NUMBERS_CLASS, IBLOCK_DATA_CLASS,
@@ -318,9 +318,12 @@ public final class SpigotReflectionUtil {
         NMS_MINECRAFT_KEY_CLASS = getServerClass(IS_OBFUSCATED ? "resources.MinecraftKey" : "resources.ResourceLocation", "MinecraftKey");
         ENTITY_HUMAN_CLASS = getServerClass(IS_OBFUSCATED ? "world.entity.player.EntityHuman" : "world.entity.player.Player", "EntityHuman");
         PLAYER_CONNECTION_CLASS = getServerClass(IS_OBFUSCATED ? "server.network.PlayerConnection" : "server.network.ServerGamePacketListenerImpl", "PlayerConnection");
+        SERVER_LOGIN_PACKET_LISTENER_IMPL_CLASS = getServerClass(IS_OBFUSCATED ? "server.network.LoginListener" : "server.network.ServerLoginPacketListenerImpl", "LoginListener");
 
-        //Only on 1.20.2
+        // 1.20.2+
         SERVER_COMMON_PACKETLISTENER_IMPL_CLASS = getServerClass("server.network.ServerCommonPacketListenerImpl", "ServerCommonPacketListenerImpl");
+        // 1.20.5+
+        TRANSFER_COOKIE_CONNECTION_CLASS = getOBCClass("entity.CraftPlayer$TransferCookieConnection");
 
         SERVER_CONNECTION_CLASS = getServerClass(IS_OBFUSCATED ? "server.network.ServerConnection" : "server.network.ServerConnectionListener", "ServerConnection");
         NETWORK_MANAGER_CLASS = getServerClass(IS_OBFUSCATED ? "network.NetworkManager" : "network.Connection", "NetworkManager");
@@ -543,6 +546,9 @@ public final class SpigotReflectionUtil {
             return null;
         }
         ReflectionObject wrappedEntityPlayer = new ReflectionObject(entityPlayer, ENTITY_PLAYER_CLASS);
+        if (TRANSFER_COOKIE_CONNECTION_CLASS != null) {
+            return wrappedEntityPlayer.readObject(0, TRANSFER_COOKIE_CONNECTION_CLASS);
+        }
         return wrappedEntityPlayer.readObject(0, SpigotReflectionUtil.PLAYER_CONNECTION_CLASS);
     }
 
@@ -592,8 +598,13 @@ public final class SpigotReflectionUtil {
         if (playerConnection == null) {
             return null;
         }
-        Class<?> playerConnectionClass = SERVER_COMMON_PACKETLISTENER_IMPL_CLASS != null ?
-                SERVER_COMMON_PACKETLISTENER_IMPL_CLASS : PLAYER_CONNECTION_CLASS;
+        Class<?> playerConnectionClass;
+        if (SERVER_COMMON_PACKETLISTENER_IMPL_CLASS != null) {
+            playerConnectionClass = playerConnection.getClass() == SERVER_LOGIN_PACKET_LISTENER_IMPL_CLASS
+                    ? SERVER_LOGIN_PACKET_LISTENER_IMPL_CLASS : SERVER_COMMON_PACKETLISTENER_IMPL_CLASS;
+        } else {
+            playerConnectionClass = PLAYER_CONNECTION_CLASS;
+        }
         ReflectionObject wrapper = new ReflectionObject(playerConnection, playerConnectionClass);
         try {
             return wrapper.readObject(0, NETWORK_MANAGER_CLASS);
