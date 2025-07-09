@@ -33,19 +33,35 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.MapMaker;
 import io.netty.buffer.PooledByteBufAllocator;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
+import org.bukkit.Registry;
+import org.bukkit.Server;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -95,7 +111,7 @@ public final class SpigotReflectionUtil {
     //Fields
     public static Field ENTITY_PLAYER_PING_FIELD, ENTITY_BOUNDING_BOX_FIELD, BYTE_BUF_IN_PACKET_DATA_SERIALIZER, DIMENSION_CODEC_FIELD,
             DYNAMIC_OPS_NBT_INSTANCE_FIELD, CHUNK_PROVIDER_SERVER_FIELD, CRAFT_PARTICLE_PARTICLES_FIELD, NMS_MK_KEY_FIELD, LEGACY_NMS_PARTICLE_KEY_FIELD, LEGACY_NMS_KEY_TO_NMS_PARTICLE,
-            REMOTE_CHAT_SESSION_FIELD;
+            REMOTE_CHAT_SESSION_FIELD, REGISTRY_KEY_LOCATION_FIELD;
 
     //Methods
     public static Method IS_DEBUGGING, GET_CRAFT_PLAYER_HANDLE_METHOD, GET_CRAFT_ENTITY_HANDLE_METHOD, GET_CRAFT_WORLD_HANDLE_METHOD,
@@ -108,7 +124,7 @@ public final class SpigotReflectionUtil {
             GET_DIMENSION_MANAGER, GET_DIMENSION_ID, GET_DIMENSION_KEY, CODEC_ENCODE_METHOD, DATA_RESULT_GET_METHOD,
             READ_NBT_FROM_STREAM_METHOD, WRITE_NBT_TO_STREAM_METHOD, STREAM_DECODER_DECODE, STREAM_ENCODER_ENCODE,
             CREATE_REGISTRY_RESOURCE_KEY, GET_REGISTRY_OR_THROW, GET_DIMENSION_TYPES, GET_REGISTRY_ID,
-            NBT_ACCOUNTER_UNLIMITED_HEAP, GET_REGISTRY_KEY_LOCATION, CHUNK_CACHE_GET_IBLOCKACCESS, CHUNK_CACHE_GET_ICHUNKACCESS,
+            NBT_ACCOUNTER_UNLIMITED_HEAP, CHUNK_CACHE_GET_IBLOCKACCESS, CHUNK_CACHE_GET_ICHUNKACCESS,
             IBLOCKACCESS_GET_BLOCK_DATA, CHUNK_GET_BLOCK_DATA, PLAYER_CHUNK_MAP_GET_PLAYER_CHUNK, PLAYER_CHUNK_GET_CHUNK;
 
     //Constructors
@@ -240,7 +256,6 @@ public final class SpigotReflectionUtil {
                 0, RESOURCE_KEY);
         GET_DIMENSION_TYPES = Reflection.getMethod(REGISTRY_ACCESS_FROZEN, REGISTRY, 0);
         GET_REGISTRY_ID = Reflection.getMethod(REGISTRY, int.class, 0, Object.class);
-        GET_REGISTRY_KEY_LOCATION = Reflection.getMethod(RESOURCE_KEY, NMS_MINECRAFT_KEY_CLASS, 0);
         //Only need to check if the arguments are null. The lookup class being null is handled in the method.
         //Not checking if the arguments passed are null could lead to unintended behavior.
         if (IBLOCKACCESS_CLASS != null) {
@@ -286,6 +301,7 @@ public final class SpigotReflectionUtil {
         }
 
         REMOTE_CHAT_SESSION_FIELD = Reflection.getField(ENTITY_PLAYER_CLASS, REMOTE_CHAT_SESSION_CLASS, 0);
+        REGISTRY_KEY_LOCATION_FIELD = Reflection.getField(RESOURCE_KEY, NMS_MINECRAFT_KEY_CLASS, 1);
     }
 
     private static void initClasses() {
@@ -704,7 +720,7 @@ public final class SpigotReflectionUtil {
     public static String getDimensionKey(Object worldServer) {
         try {
             Object resourceKey = GET_DIMENSION_KEY.invoke(worldServer);
-            return GET_REGISTRY_KEY_LOCATION.invoke(resourceKey).toString();
+            return REGISTRY_KEY_LOCATION_FIELD.get(resourceKey).toString();
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
