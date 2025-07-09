@@ -1,29 +1,17 @@
-import java.io.ByteArrayOutputStream
-
 // TODO UPDATE
-val fullVersion = "2.9.0"
-val snapshot = true
+ext["fullVersion"] = "2.9.0"
+ext["snapshot"] = true
+
+ext["commitHash"] = providers.exec {
+    commandLine("git", "rev-parse", "--short", "HEAD")
+}.standardOutput.asText.map { it.trim() }.orElse("unknown")
+ext["versionMeta"] = if (ext["snapshot"] == true) "-SNAPSHOT" else ""
+ext["versionMetaWithHash"] = "+${ext["commitHash"]}${ext["versionMeta"]}"
+ext["versionNoHash"] = "${ext["fullVersion"]}${ext["versionMeta"]}"
 
 group = "com.github.retrooper"
 description = rootProject.name
-
-fun getVersionMeta(includeHash: Boolean): String {
-    if (!snapshot) {
-        return ""
-    }
-    var commitHash = ""
-    if (includeHash && file(".git").isDirectory) {
-        val stdout = ByteArrayOutputStream()
-        exec {
-            commandLine("git", "rev-parse", "--short", "HEAD")
-            standardOutput = stdout
-        }
-        commitHash = "+${stdout.toString().trim()}"
-    }
-    return "$commitHash-SNAPSHOT"
-}
-version = "$fullVersion${getVersionMeta(true)}"
-ext["versionNoHash"] = "$fullVersion${getVersionMeta(false)}"
+version = "${ext["fullVersion"]}${ext["versionMetaWithHash"]}"
 
 tasks {
     wrapper {

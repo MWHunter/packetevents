@@ -38,8 +38,8 @@ velocity = { group = "com.velocitypowered", name = "velocity-api", version.ref =
 classgraph = { group = "io.github.classgraph", name = "classgraph", version.ref = "classgraph" }
 
 [bundles]
-adventure = [ "adventure-api", "adventure-nbt", "adventure-key", "adventure-examination-api", "adventure-examination-string" ]
-adventure-serializers = [ "adventure-text-serializer-gson", "adventure-text-serializer-json-legacy", "adventure-text-serializer-legacy" ]
+adventure = ["adventure-api", "adventure-nbt", "adventure-key", "adventure-examination-api", "adventure-examination-string"]
+adventure-serializers = ["adventure-text-serializer-gson", "adventure-text-serializer-json-legacy", "adventure-text-serializer-legacy"]
 
 [plugins]
 run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-paper" }
