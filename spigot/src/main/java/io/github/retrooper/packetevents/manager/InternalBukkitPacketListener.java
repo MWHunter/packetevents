@@ -32,20 +32,28 @@ public class InternalBukkitPacketListener extends com.github.retrooper.packeteve
         // process after generic internal listener has processed this packet
         if (event.getPacketType() == PacketType.Login.Server.LOGIN_SUCCESS) {
             WrapperLoginServerLoginSuccess packet = new WrapperLoginServerLoginSuccess(event);
+            this.tryUpdatePlayerReference(event, event.getUser(), packet.getUserProfile().getUUID());
+        } else if (event.getPacketType() == PacketType.Play.Server.JOIN_GAME) {
+            // try to update player reference again
+            this.tryUpdatePlayerReference(event, event.getUser(), event.getUser().getUUID());
+        }
+    }
 
-            PacketEventsAPI<?> api = PacketEvents.getAPI();
-            Map<UUID, WeakReference<Player>> map = ((PlayerManagerImpl) api.getPlayerManager()).joiningPlayers;
-            WeakReference<Player> playerRef = map.remove(packet.getUserProfile().getUUID());
-            Player player = playerRef != null ? playerRef.get() : null;
+    private void tryUpdatePlayerReference(PacketSendEvent event, User user, UUID playerId) {
+        PacketEventsAPI<?> api = PacketEvents.getAPI();
+        Map<UUID, WeakReference<Player>> map = ((PlayerManagerImpl) api.getPlayerManager()).joiningPlayers;
+        WeakReference<Player> playerRef = map.remove(playerId);
+        Player player = playerRef != null ? playerRef.get() : null;
 
-            // we don't care whether this player is null or not; if it is null,
-            // our bukkit listener may have already handled everything or will be handling it
-            if (player != null) {
-                ((SpigotChannelInjector) api.getInjector()).updatePlayer(event.getUser(), player);
-                if (api.getLogManager().isDebug()) {
-                    api.getLogManager().debug("Updated player reference on packet handling for " + player.getUniqueId());
-                }
+        // we don't care whether this player is null or not; if it is null,
+        // our bukkit listener may have already handled everything or will be handling it
+        if (player != null) {
+            ((SpigotChannelInjector) api.getInjector()).updatePlayer(user, player);
+            if (api.getLogManager().isDebug()) {
+                api.getLogManager().debug("Updated player reference on packet handling for " + player.getUniqueId());
             }
+            // update player object in current packet event
+            event.setPlayer(player);
         }
     }
 

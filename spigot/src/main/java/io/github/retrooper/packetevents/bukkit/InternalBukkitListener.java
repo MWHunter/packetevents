@@ -20,7 +20,6 @@ package io.github.retrooper.packetevents.bukkit;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.FakeChannelUtil;
 import io.github.retrooper.packetevents.injector.SpigotChannelInjector;
@@ -34,15 +33,20 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.NullMarked;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Used on Paper/Spigot before 1.20.5
+ */
+@NullMarked
 @ApiStatus.Internal
 public class InternalBukkitListener implements Listener {
 
-    private static final String KICK_MESSAGE = "PacketEvents failed to inject into a channel";
+    static final String KICK_MESSAGE = "PacketEvents failed to inject into a channel";
 
     private final Plugin plugin;
 
@@ -50,51 +54,23 @@ public class InternalBukkitListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onLoginInstant(PlayerLoginEvent event) {
-        PacketEventsAPI<?> api = PacketEvents.getAPI();
-        if (api.getServerManager().getVersion().isOlderThan(ServerVersion.V_1_20_5)) {
-            return; // only works for 1.20.5 and above
-        }
-        User user = api.getPlayerManager().getUser(event.getPlayer());
-        if (user != null) {
-            // if the user can be resolved from this player, save in encoder/decoder
-            SpigotChannelInjector injector = (SpigotChannelInjector) api.getInjector();
-            injector.updatePlayer(user, event.getPlayer());
-            return; // we're done
-        }
-        Object channel = api.getPlayerManager().getChannel(event.getPlayer());
-        if (channel != null && FakeChannelUtil.isFakeChannel(channel)
-                || (api.isTerminated() && !api.getSettings().isKickIfTerminated())) {
-            // either fake channel or api terminated (and we don't kick)
-            return;
-        }
-        // since 1.20.5 and cookie packets, CraftBukkit associates the login listener with the player
-        // before calling the login event; if this fails on 1.20.5+, something broke a lot
-        event.disallow(PlayerLoginEvent.Result.KICK_OTHER, KICK_MESSAGE);
-    }
-
+    // this is the first event which is called after the player object has been created;
+    // note that we can't extract the reference to the player's connection yet
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onLoginDelayed(PlayerLoginEvent event) {
+    public void onLogin(PlayerLoginEvent event) {
         if (event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
             return; // don't care
         }
-        PacketEventsAPI<?> api = PacketEvents.getAPI();
-        if (api.getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20_5)) {
-            return; // if this is 1.20.5+, we have a direct way to access the channel, see method above
-        }
         // save player in map for packet handler to consume
+        PacketEventsAPI<?> api = PacketEvents.getAPI();
         Map<UUID, WeakReference<Player>> map = ((PlayerManagerImpl) api.getPlayerManager()).joiningPlayers;
         map.put(event.getPlayer().getUniqueId(), new WeakReference<>(event.getPlayer()));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(PlayerJoinEvent event) {
-        PacketEventsAPI<?> api = PacketEvents.getAPI();
-        if (api.getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20_5)) {
-            return; // if this is 1.20.5+, we have already processed everything in login event
-        }
         Player player = event.getPlayer();
+        PacketEventsAPI<?> api = PacketEvents.getAPI();
         User user = api.getPlayerManager().getUser(player);
         if (user != null) {
             // update player reference in encoder/decoder (doesn't matter if this was already done)
