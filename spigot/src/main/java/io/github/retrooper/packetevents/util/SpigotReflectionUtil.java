@@ -166,10 +166,7 @@ public final class SpigotReflectionUtil {
             GET_ENTITY_BY_ID_LEVEL_ENTITY_GETTER_METHOD = Reflection.getMethod(LEVEL_ENTITY_GETTER_CLASS, ENTITY_ACCESS_CLASS, 0, int.class);
         }
         if (DIMENSION_MANAGER_CLASS != null) {
-            if (PacketEvents.getAPI().getServerManager().getVersion() == ServerVersion.V_1_16
-                    || PacketEvents.getAPI().getServerManager().getVersion() == ServerVersion.V_1_16_1) {
-                GET_DIMENSION_KEY = Reflection.getMethod(LEVEL_CLASS, "getTypeKey", 0);
-            }
+            GET_DIMENSION_KEY = Reflection.getMethod(LEVEL_CLASS, "getTypeKey", 0);
             GET_DIMENSION_MANAGER = Reflection.getMethod(LEVEL_CLASS, DIMENSION_MANAGER_CLASS, 0);
             GET_DIMENSION_ID = Reflection.getMethod(DIMENSION_MANAGER_CLASS, int.class, 0);
         }
