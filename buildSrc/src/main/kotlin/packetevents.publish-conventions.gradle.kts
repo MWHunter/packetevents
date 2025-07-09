@@ -20,6 +20,7 @@ configure<ModPublishExtension> {
             accessToken = providers.environmentVariable("GITHUB_API_TOKEN")
             repository = providers.environmentVariable("GITHUB_REPOSITORY")
             commitish = providers.environmentVariable("GITHUB_REF_NAME")
+            tagName = version.map { "v${it}" }
             displayName = version
 
             // won't be empty, just so the publishing plugin won't complain
