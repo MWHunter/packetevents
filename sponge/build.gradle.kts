@@ -4,6 +4,7 @@ import org.spongepowered.plugin.metadata.model.PluginDependency
 plugins {
     packetevents.`shadow-conventions`
     packetevents.`library-conventions`
+    packetevents.`publish-conventions`
     alias(libs.plugins.spongeGradle)
 }
 

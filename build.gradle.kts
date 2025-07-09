@@ -1,29 +1,20 @@
-import java.io.ByteArrayOutputStream
+plugins {
+    packetevents.`publish-conventions`
+}
 
-// TODO UPDATE
-val fullVersion = "2.9.0"
-val snapshot = true
+// properties are all set as string, convert to boolean
+ext["snapshot"] = ext["snapshot"].toString().toBooleanStrict()
+
+ext["commitHash"] = providers.exec {
+    commandLine("git", "rev-parse", "--short", "HEAD")
+}.standardOutput.asText.map { it.trim() }.getOrElse("unknown")
+ext["versionMeta"] = if (ext["snapshot"] == true) "-SNAPSHOT" else ""
+ext["versionMetaWithHash"] = "+${ext["commitHash"]}${ext["versionMeta"]}"
+ext["versionNoHash"] = "${ext["fullVersion"]}${ext["versionMeta"]}"
 
 group = "com.github.retrooper"
 description = rootProject.name
-
-fun getVersionMeta(includeHash: Boolean): String {
-    if (!snapshot) {
-        return ""
-    }
-    var commitHash = ""
-    if (includeHash && file(".git").isDirectory) {
-        val stdout = ByteArrayOutputStream()
-        exec {
-            commandLine("git", "rev-parse", "--short", "HEAD")
-            standardOutput = stdout
-        }
-        commitHash = "+${stdout.toString().trim()}"
-    }
-    return "$commitHash-SNAPSHOT"
-}
-version = "$fullVersion${getVersionMeta(true)}"
-ext["versionNoHash"] = "$fullVersion${getVersionMeta(false)}"
+version = "${ext["fullVersion"]}${ext[if (ext["snapshot"] == true) "versionMetaWithHash" else "versionMeta"]}"
 
 tasks {
     wrapper {
@@ -62,12 +53,17 @@ tasks {
         delete(rootProject.layout.buildDirectory)
     }
 
+    register("printVersion") {
+        println(project.version)
+    }
+
     defaultTasks("build")
 }
 
 allprojects {
     tasks {
         withType<Jar> {
+            archiveBaseName = "${rootProject.name}-${project.name}"
             archiveVersion = rootProject.ext["versionNoHash"] as String
         }
     }
