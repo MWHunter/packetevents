@@ -1,17 +1,17 @@
-// TODO UPDATE
-ext["fullVersion"] = "2.9.0"
-ext["snapshot"] = true
+plugins {
+    packetevents.`publish-conventions`
+}
 
 ext["commitHash"] = providers.exec {
     commandLine("git", "rev-parse", "--short", "HEAD")
-}.standardOutput.asText.map { it.trim() }.orElse("unknown")
+}.standardOutput.asText.map { it.trim() }.getOrElse("unknown")
 ext["versionMeta"] = if (ext["snapshot"] == true) "-SNAPSHOT" else ""
 ext["versionMetaWithHash"] = "+${ext["commitHash"]}${ext["versionMeta"]}"
 ext["versionNoHash"] = "${ext["fullVersion"]}${ext["versionMeta"]}"
 
 group = "com.github.retrooper"
 description = rootProject.name
-version = "${ext["fullVersion"]}${ext["versionMetaWithHash"]}"
+version = "${ext["fullVersion"]}${ext[if (ext["snapshot"] == true) "versionMetaWithHash" else "versionMeta"]}"
 
 tasks {
     wrapper {
@@ -50,12 +50,17 @@ tasks {
         delete(rootProject.layout.buildDirectory)
     }
 
+    register("printVersion") {
+        println(project.version)
+    }
+
     defaultTasks("build")
 }
 
 allprojects {
     tasks {
         withType<Jar> {
+            archiveBaseName = "${rootProject.name}-${project.name}"
             archiveVersion = rootProject.ext["versionNoHash"] as String
         }
     }

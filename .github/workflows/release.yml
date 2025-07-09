@@ -1,8 +1,6 @@
 name: Release
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -27,10 +25,9 @@ jobs:
 
       - name: Extract changelog
         id: changelog
-        env:
-          REF: ${{ github.ref }}
         run: |
-          awk -v tag="${REF:10}" '
+          TAG_NAME="v$(./gradlew -q printVersion)"
+          awk -v tag="${TAG_NAME}" '
             $1 == "!!!!!" && $2 == tag {found=1; next}
             $1 == "!!!!!" && found {exit}
             found

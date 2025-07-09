@@ -1,6 +1,7 @@
 plugins {
     packetevents.`shadow-conventions`
     packetevents.`library-conventions`
+    packetevents.`publish-conventions`
 }
 
 repositories {

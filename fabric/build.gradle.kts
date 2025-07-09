@@ -1,5 +1,11 @@
+import me.modmuss50.mpp.ModPublishExtension
+import me.modmuss50.mpp.PublishModTask
+import net.fabricmc.loom.task.RemapJarTask
+import net.fabricmc.loom.task.RemapSourcesJarTask
+
 plugins {
     packetevents.`library-conventions`
+    packetevents.`publish-conventions`
     alias(libs.plugins.fabric.loom)
 }
 
@@ -44,12 +50,18 @@ tasks {
     }
 
     remapJar {
-        archiveBaseName = "${rootProject.name}-fabric"
+        archiveBaseName = "${rootProject.name}-${project.name}"
         archiveVersion = rootProject.ext["versionNoHash"] as String
     }
 
     remapSourcesJar {
+        archiveBaseName = "${rootProject.name}-${project.name}"
         archiveVersion = rootProject.ext["versionNoHash"] as String
+    }
+
+    withType<PublishModTask> {
+        dependsOn(named<RemapJarTask>("remapJar"))
+        dependsOn(named<RemapSourcesJarTask>("remapSourcesJar"))
     }
 }
 
@@ -63,4 +75,9 @@ loom {
     }
     accessWidenerPath = sourceSets.main.get().resources.srcDirs.single()
         .resolve("${rootProject.name}.accesswidener")
+}
+
+configure<ModPublishExtension> {
+    file = tasks.named<RemapJarTask>("remapJar").flatMap { it.archiveFile }
+    additionalFiles.from(tasks.named<RemapSourcesJarTask>("remapSourcesJar").flatMap { it.archiveFile })
 }
