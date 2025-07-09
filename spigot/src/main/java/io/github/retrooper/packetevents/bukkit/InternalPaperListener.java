@@ -18,9 +18,6 @@
 
 package io.github.retrooper.packetevents.bukkit;
 
-import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.PacketEventsAPI;
-import io.github.retrooper.packetevents.manager.player.PlayerManagerImpl;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -30,10 +27,6 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 import org.spigotmc.event.player.PlayerSpawnLocationEvent;
-
-import java.lang.ref.WeakReference;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * Used on Paper 1.21.7+ because of changes due to their Configuration API;
@@ -55,14 +48,11 @@ public class InternalPaperListener implements Listener {
     // the reference to the player's connection yet, like before 1.20.5
     @EventHandler(priority = EventPriority.LOWEST)
     public void onSpawnLocation(PlayerSpawnLocationEvent event) {
-        // save player in map for packet handler to consume
-        PacketEventsAPI<?> api = PacketEvents.getAPI();
-        Map<UUID, WeakReference<Player>> map = ((PlayerManagerImpl) api.getPlayerManager()).joiningPlayers;
-        map.put(event.getPlayer().getUniqueId(), new WeakReference<>(event.getPlayer()));
+        this.delegate.onPreJoin(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(PlayerJoinEvent event) {
-        this.delegate.onJoin(event);
+        this.delegate.onPostJoin(event.getPlayer());
     }
 }

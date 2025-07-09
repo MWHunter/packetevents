@@ -58,18 +58,24 @@ public class InternalBukkitListener implements Listener {
     // note that we can't extract the reference to the player's connection yet
     @EventHandler(priority = EventPriority.MONITOR)
     public void onLogin(PlayerLoginEvent event) {
-        if (event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
-            return; // don't care
+        if (event.getResult() == PlayerLoginEvent.Result.ALLOWED) {
+            this.onPreJoin(event.getPlayer());
         }
-        // save player in map for packet handler to consume
-        PacketEventsAPI<?> api = PacketEvents.getAPI();
-        Map<UUID, WeakReference<Player>> map = ((PlayerManagerImpl) api.getPlayerManager()).joiningPlayers;
-        map.put(event.getPlayer().getUniqueId(), new WeakReference<>(event.getPlayer()));
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
+        this.onPostJoin(event.getPlayer());
+    }
+
+    void onPreJoin(Player player) {
+        // save player in map for packet handler to consume
+        PacketEventsAPI<?> api = PacketEvents.getAPI();
+        Map<UUID, WeakReference<Player>> map = ((PlayerManagerImpl) api.getPlayerManager()).joiningPlayers;
+        map.put(player.getUniqueId(), new WeakReference<>(player));
+    }
+
+    void onPostJoin(Player player) {
         PacketEventsAPI<?> api = PacketEvents.getAPI();
         User user = api.getPlayerManager().getUser(player);
         if (user != null) {
