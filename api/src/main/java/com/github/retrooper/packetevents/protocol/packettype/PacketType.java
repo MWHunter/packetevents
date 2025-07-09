@@ -1125,7 +1125,7 @@ public final class PacketType {
             INITIALIZE_WORLD_BORDER(WrapperPlayServerInitializeWorldBorder.class),
             KEEP_ALIVE(WrapperPlayServerKeepAlive.class),
             CHUNK_DATA(WrapperPlayServerChunkData.class),
-            EFFECT(null),
+            EFFECT(WrapperPlayServerEffect.class),
             PARTICLE(WrapperPlayServerParticle.class),
             UPDATE_LIGHT(WrapperPlayServerUpdateLight.class),
             JOIN_GAME(WrapperPlayServerJoinGame.class),
