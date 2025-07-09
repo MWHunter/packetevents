@@ -19,14 +19,13 @@
 package com.github.retrooper.packetevents.protocol.chat.message;
 
 import com.github.retrooper.packetevents.protocol.chat.ChatType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
 public class ChatMessage {
     private Component chatContent;
     private ChatType type;
-
-    private final GsonComponentSerializer gson = GsonComponentSerializer.gson();
 
     protected ChatMessage(Component chatContent, ChatType type) {
         this.chatContent = chatContent;
@@ -37,16 +36,16 @@ public class ChatMessage {
         return chatContent;
     }
 
-    public String getChatContentJson() {
-        return gson.serialize(chatContent);
+    public String getChatContentJson(ClientVersion version) {
+        return AdventureSerializer.serializer(version).asJson(this.getChatContent());
     }
 
     public void setChatContent(Component chatContent) {
         this.chatContent = chatContent;
     }
 
-    public void setChatContentJson(String jsonContent) {
-        this.chatContent = gson.deserialize(jsonContent);
+    public void setChatContentJson(ClientVersion version, String json) {
+        this.setChatContent(AdventureSerializer.serializer(version).fromJson(json));
     }
 
     public ChatType getType() {
