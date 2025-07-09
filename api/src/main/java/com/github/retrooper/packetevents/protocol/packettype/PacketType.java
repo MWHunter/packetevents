@@ -1099,7 +1099,7 @@ public final class PacketType {
             @ApiStatus.Obsolete
             SPAWN_EXPERIENCE_ORB(WrapperPlayServerSpawnExperienceOrb.class),
             ENTITY_ANIMATION(WrapperPlayServerEntityAnimation.class),
-            STATISTICS(null),
+            STATISTICS(WrapperPlayServerStatistics.class),
             BLOCK_BREAK_ANIMATION(WrapperPlayServerBlockBreakAnimation.class),
             BLOCK_ENTITY_DATA(WrapperPlayServerBlockEntityData.class),
             BLOCK_ACTION(WrapperPlayServerBlockAction.class),
@@ -1191,7 +1191,7 @@ public final class PacketType {
             NBT_QUERY_RESPONSE(WrapperPlayServerNBTQueryResponse.class),
             COLLECT_ITEM(WrapperPlayServerCollectItem.class),
             ENTITY_TELEPORT(WrapperPlayServerEntityTeleport.class),
-            UPDATE_ADVANCEMENTS(null),
+            UPDATE_ADVANCEMENTS(WrapperPlayServerUpdateAdvancements.class),
             UPDATE_ATTRIBUTES(WrapperPlayServerUpdateAttributes.class),
             ENTITY_EFFECT(WrapperPlayServerEntityEffect.class),
             DECLARE_RECIPES(WrapperPlayServerDeclareRecipes.class),

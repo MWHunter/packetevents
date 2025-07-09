@@ -24,12 +24,14 @@ import com.github.retrooper.packetevents.injector.ChannelInjector;
 import com.github.retrooper.packetevents.manager.player.PlayerManager;
 import com.github.retrooper.packetevents.manager.protocol.ProtocolManager;
 import com.github.retrooper.packetevents.manager.server.ServerManager;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.netty.NettyManager;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.settings.PacketEventsSettings;
 import com.github.retrooper.packetevents.util.LogManager;
+import com.github.retrooper.packetevents.util.PEVersion;
 import io.github.retrooper.packetevents.bukkit.InternalBukkitListener;
 import io.github.retrooper.packetevents.injector.SpigotChannelInjector;
 import io.github.retrooper.packetevents.injector.connection.ServerConnectionInitializer;
@@ -137,9 +139,24 @@ public class SpigotPacketEventsBuilder {
                 //Load if we haven't loaded already
                 load();
                 if (!initialized) {
+                    Plugin plugin = (Plugin) PacketEvents.getAPI().getPlugin();
+                    String bukkitVersion = Bukkit.getBukkitVersion();
+                    // Our PEVersion class can parse this version and detect if it is a newer version than what is currently supported
+                    PEVersion bukkitServerVersion = PEVersion.fromString(bukkitVersion.substring(0, bukkitVersion.indexOf("-")));
+                    PEVersion latestSupportedVersion = PEVersion.fromString(ServerVersion.getLatest().getReleaseName());
+                    if (bukkitServerVersion.isNewerThan(latestSupportedVersion)) {
+                        //We do not support this version yet, so let us warn the user
+                        plugin.getLogger().warning("Your build of PacketEvents does not support the Minecraft version "
+                                + bukkitServerVersion + "! The latest Minecraft version supported by your build of PacketEvents is " + latestSupportedVersion
+                                + ". Please test the development builds, as they may already have support for your Minecraft version (hint: select the build that contains 'spigot'): https://ci.codemc.io/job/retrooper/job/packetevents/ If you're in need of any help, join our Discord server: https://discord.gg/DVHxPPxHZc");
+                        Bukkit.getPluginManager().disablePlugin(plugin);
+                        return;
+                    }
                     if (settings.shouldCheckForUpdates()) {
                         getUpdateChecker().handleUpdateCheck();
                     }
+
+
 
                     Metrics metrics = new Metrics(plugin, 11327);
                     //Just to have an idea of which versions of packetevents people use

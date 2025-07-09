@@ -42,7 +42,7 @@ import java.util.UUID;
 @ApiStatus.Internal
 public class InternalBukkitListener implements Listener {
 
-    private static final String KICK_MESSAGE = "PacketEvents 2.0 failed to inject";
+    private static final String KICK_MESSAGE = "PacketEvents failed to inject into a channel";
 
     private final Plugin plugin;
 
