@@ -10,7 +10,7 @@ configure<ModPublishExtension> {
     changelog = providers.environmentVariable("CHANGELOG")
         .map { it.trim() }
         .getOrElse("No changelog provided")
-    type = if (project.version.toString().endsWith("-SNAPSHOT")) BETA else STABLE
+    type = if (rootProject.ext["snapshot"] == true) BETA else STABLE
     dryRun = !hasProperty("noDryPublish")
 
     // if there is no publishing platform set, assume this is the root task
