@@ -25,11 +25,11 @@ val loader_version: String by project
 
 dependencies {
     api(libs.bundles.adventure)
-    api(project(":api", "shadow"))
+    api(project(":api"))
     api(project(":netty-common"))
 
     include(libs.bundles.adventure)
-    include(project(":api", "shadow"))
+    include(project(":api"))
     include(project(":netty-common"))
 
     // To change the versions, see the gradle.properties file

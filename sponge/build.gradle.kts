@@ -38,12 +38,13 @@ sponge {
 
 dependencies {
     compileOnly(libs.netty)
-    shadow(libs.adventure.nbt) {
-        isTransitive = false
-    }
-    shadow(project(":api", "shadow"))
-    shadow(project(":netty-common"))
-    compileShadowOnly(libs.bstats.sponge)
+
+    // we just need adventure nbt...
+    apiAndPublish(libs.adventure.nbt) { isTransitive = false }
+
+    apiAndPublish(project(":api"))
+    apiAndPublish(project(":netty-common"))
+    shadowAndPublish(libs.bstats.sponge)
 
     compileOnly(libs.via.version)
 }

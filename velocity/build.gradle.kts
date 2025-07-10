@@ -15,10 +15,10 @@ dependencies {
     compileOnly(libs.netty)
     compileOnly(libs.velocity)
     annotationProcessor(libs.velocity)
-    shadow(project(":api", "shadow"))
-    shadow(project(":netty-common"))
-    compileShadowOnly(libs.bstats.velocity)
-    // Velocity already bundles with adventure
+
+    apiAndPublish(project(":api"))
+    apiAndPublish(project(":netty-common"))
+    shadowAndPublish(libs.bstats.velocity)
 }
 
 tasks {

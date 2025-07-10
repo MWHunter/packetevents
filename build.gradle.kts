@@ -32,7 +32,9 @@ tasks {
     }
 
     register("printVersion") {
-        println(project.version)
+        doLast {
+            println(project.version)
+        }
     }
 
     defaultTasks("build")
@@ -43,6 +45,11 @@ allprojects {
         withType<Jar> {
             archiveBaseName = "${rootProject.name}-${project.name}"
             archiveVersion = rootProject.ext["versionNoHash"] as String
+        }
+        withType<AbstractArchiveTask> {
+            // make builds reproducible
+            isPreserveFileTimestamps = false
+            isReproducibleFileOrder = true
         }
     }
 }
