@@ -26,30 +26,8 @@ tasks {
         subprojects.filterNot { it.path == ":patch" }.map { it.tasks[task] }.toTypedArray()
     }
 
-    register("build") {
-        dependsOn(*taskSubModules("build"))
-        group = "build"
-
-        doLast {
-            val buildOut = project.layout.buildDirectory.dir("libs").get().asFile
-            if (!buildOut.exists())
-                buildOut.mkdirs()
-
-            for (subproject in subprojects) {
-                if (subproject.path.startsWith(":patch")) continue
-                val subIn = subproject.layout.buildDirectory.dir("libs").get()
-
-                copy {
-                    from(subIn)
-                    into(buildOut)
-                }
-            }
-        }
-    }
-
     register<Delete>("clean") {
         dependsOn(*taskSubModules("clean"))
-        group = "build"
         delete(rootProject.layout.buildDirectory)
     }
 

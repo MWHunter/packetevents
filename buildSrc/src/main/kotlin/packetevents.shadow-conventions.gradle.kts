@@ -14,6 +14,7 @@ tasks {
     shadowJar {
         configurations.add(compileShadowOnly)
 
+        destinationDirectory = rootProject.layout.buildDirectory.dir("libs")
         archiveFileName = "packetevents-${project.name}-${rootProject.ext["versionNoHash"]}.jar"
         archiveClassifier = null
 

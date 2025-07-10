@@ -50,6 +50,7 @@ tasks {
     }
 
     remapJar {
+        destinationDirectory = rootProject.layout.buildDirectory.dir("libs")
         archiveBaseName = "${rootProject.name}-${project.name}"
         archiveVersion = rootProject.ext["versionNoHash"] as String
     }
