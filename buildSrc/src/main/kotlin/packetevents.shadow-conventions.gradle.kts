@@ -73,8 +73,14 @@ tasks {
 
 configurations.implementation.get().extendsFrom(configurations.shadow.get())
 
+// TODO properly publish correct shadow references instead of this mess
 gradle.taskGraph.whenReady {
-    if (gradle.startParameter.taskNames.any { it.contains("publish") }) {
+    if (gradle.startParameter.taskNames.any {
+            it.contains("publish") && !it.equals(
+                "publishMods",
+                ignoreCase = true
+            )
+        }) {
         logger.info("Adding shadow configuration to shadowJar tasks in module ${project.name}.")
         tasks.withType<ShadowJar> {
             dependencies {
