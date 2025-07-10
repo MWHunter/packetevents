@@ -18,7 +18,7 @@ version = "${ext["fullVersion"]}${ext[if (ext["snapshot"] == true) "versionMetaW
 
 tasks {
     wrapper {
-        gradleVersion = "8.13"
+        gradleVersion = "8.14.3"
         distributionType = Wrapper.DistributionType.ALL
     }
 
