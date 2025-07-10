@@ -2,6 +2,7 @@ import me.modmuss50.mpp.ModPublishExtension
 import me.modmuss50.mpp.PublishModTask
 import net.fabricmc.loom.task.RemapJarTask
 import net.fabricmc.loom.task.RemapSourcesJarTask
+import net.fabricmc.loom.task.prod.ServerProductionRunTask
 
 plugins {
     packetevents.`library-conventions`
@@ -81,4 +82,10 @@ loom {
 configure<ModPublishExtension> {
     file = tasks.named<RemapJarTask>("remapJar").flatMap { it.archiveFile }
     additionalFiles.from(tasks.named<RemapSourcesJarTask>("remapSourcesJar").flatMap { it.archiveFile })
+}
+
+tasks.register<ServerProductionRunTask>("prodServer") {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
