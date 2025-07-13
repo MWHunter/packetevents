@@ -34,6 +34,7 @@ import com.github.retrooper.packetevents.util.LogManager;
 import com.github.retrooper.packetevents.util.PEVersion;
 import io.github.retrooper.packetevents.bukkit.InternalBukkitListener;
 import io.github.retrooper.packetevents.bukkit.InternalBukkitLoginListener;
+import io.github.retrooper.packetevents.bukkit.InternalGlobalBukkitListener;
 import io.github.retrooper.packetevents.bukkit.InternalPaperListener;
 import io.github.retrooper.packetevents.injector.SpigotChannelInjector;
 import io.github.retrooper.packetevents.injector.connection.ServerConnectionInitializer;
@@ -161,6 +162,8 @@ public class SpigotPacketEventsBuilder {
                     Metrics metrics = new Metrics(plugin, 11327);
                     //Just to have an idea of which versions of packetevents people use
                     metrics.addCustomChart(new SimplePie("packetevents_version", () -> getVersion().toStringWithoutSnapshot()));
+
+                    Bukkit.getPluginManager().registerEvents(new InternalGlobalBukkitListener(), plugin);
 
                     try {
                         // register paper listener to support 1.21.7+ configuration api

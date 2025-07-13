@@ -50,7 +50,6 @@ public class SpongeChannelInjector implements ChannelInjector {
     private int connectionChannelsListIndex = -1;
 
     public void updatePlayer(User user, Object player) {
-        PacketEvents.getAPI().getEventManager().callEvent(new UserLoginEvent(user, player));
         Object channel = user.getChannel();
         if (channel == null) {
             channel = PacketEvents.getAPI().getPlayerManager().getChannel(player);

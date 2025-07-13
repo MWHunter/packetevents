@@ -18,6 +18,7 @@
 package io.github.retrooper.packetevents.sponge;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.UserLoginEvent;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.util.FakeChannelUtil;
 import io.github.retrooper.packetevents.sponge.injector.SpongeChannelInjector;
@@ -49,6 +50,7 @@ public class InternalSpongeListener {
         }
 
         // Set player object in the injectors
+        PacketEvents.getAPI().getEventManager().callEvent(new UserLoginEvent(user, player));
         injector.updatePlayer(user, player);
     }
 
