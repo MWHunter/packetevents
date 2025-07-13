@@ -155,7 +155,8 @@ public class WrapperPlayClientEntityAction extends PacketWrapper<WrapperPlayClie
                 if (version.isNewerThanOrEquals(ServerVersion.V_1_21_6)) {
                     return this.ordinal() - 2;
                 }
-                return version.isOlderThanOrEquals(ServerVersion.V_1_7_10) ? 6 : this.ordinal();
+                return version.isOlderThanOrEquals(ServerVersion.V_1_7_10) ?
+                        (version.isOlderThanOrEquals(ServerVersion.V_1_7_5) ? -1 : 6) : this.ordinal();
             }
         },
         /**
