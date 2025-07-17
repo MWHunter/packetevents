@@ -17,11 +17,6 @@ repositories {
 
 val isShadow = project.pluginManager.hasPlugin("com.gradleup.shadow")
 
-// configuration which is added to runtime classpath and published as a dependency
-val apiAndPublish: Configuration by configurations.creating {
-    configurations.api.get().extendsFrom(this)
-}
-
 dependencies {
     compileOnly("org.jetbrains:annotations:23.0.0")
 }
@@ -75,10 +70,11 @@ publishing {
             version = rootProject.ext["versionNoHash"] as String
 
             if (isShadow) {
-                artifact(project.tasks.withType<ShadowJar>().getByName("shadowJarPublish").archiveFile)
+                artifact(project.tasks.withType<ShadowJar>().getByName("shadowJar").archiveFile)
 
                 val allDependencies = project.provider {
-                    apiAndPublish.allDependencies.filter { it is ProjectDependency || it !is SelfResolvingDependency }
+                    project.configurations.getByName("shadow").allDependencies
+                        .filter { it is ProjectDependency || it !is SelfResolvingDependency }
                 }
 
                 pom {
@@ -162,4 +158,10 @@ publishing {
 // So that SNAPSHOT is always the latest SNAPSHOT
 configurations.all {
     resolutionStrategy.cacheDynamicVersionsFor(0, TimeUnit.SECONDS)
+}
+
+val taskNames = gradle.startParameter.taskNames
+if (taskNames.any { it.contains("build") }
+    && taskNames.any { it.contains("publish") }) {
+    throw IllegalStateException("Cannot build and publish at the same time.")
 }
