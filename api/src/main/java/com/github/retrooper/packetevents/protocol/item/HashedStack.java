@@ -23,12 +23,9 @@ import com.github.retrooper.packetevents.protocol.component.HashedComponentPatch
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public final class HashedStack {
 
@@ -42,33 +39,39 @@ public final class HashedStack {
         this.components = components;
     }
 
-    public static Optional<HashedStack> read(PacketWrapper<?> wrapper) {
-        if (!wrapper.readBoolean()) {
-            return Optional.empty();
-        }
+    public static Optional<HashedStack> readOptional(PacketWrapper<?> wrapper) {
+        return Optional.ofNullable(read(wrapper));
+    }
+
+    public static Optional<HashedStack> toOptionalFromItemStack(ItemStack itemStack) {
+        return Optional.ofNullable(fromItemStack(itemStack));
+    }
+
+    public static @Nullable HashedStack read(PacketWrapper<?> wrapper) {
+        if (!wrapper.readBoolean()) return null;
         ItemType item = wrapper.readMappedEntity(ItemTypes.getRegistry());
         int count = wrapper.readVarInt();
         HashedComponentPatchMap components = HashedComponentPatchMap.read(wrapper);
-        return Optional.of(new HashedStack(item, count, components));
+        return new HashedStack(item, count, components);
     }
 
-    public static void write(PacketWrapper<?> wrapper, Optional<HashedStack> optStack) {
-        if (optStack == null || !optStack.isPresent()) {
+    public static void writeOptional(PacketWrapper<?> wrapper, Optional<HashedStack> stack) {
+        write(wrapper, stack.orElse(null));
+    }
+
+    public static void write(PacketWrapper<?> wrapper, HashedStack stack) {
+        if (stack == null) {
             wrapper.writeBoolean(false);
         } else {
             wrapper.writeBoolean(true);
-
-            HashedStack stack = optStack.get();
             wrapper.writeMappedEntity(stack.item);
             wrapper.writeVarInt(stack.count);
             HashedComponentPatchMap.write(wrapper, stack.components);
         }
     }
 
-    public static Optional<HashedStack> fromItemStack(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) {
-            return Optional.empty();
-        }
+    public static HashedStack fromItemStack(ItemStack stack) {
+        if (stack == null) return null;
         // extract component info from item stack
         Map<ComponentType<?>, Optional<?>> patches = stack.getComponents().getPatches();
         Map<ComponentType<?>, Integer> addedComponents = new HashMap<>(patches.size());
@@ -83,7 +86,7 @@ public final class HashedStack {
         }
         // construct hashed item stack structure
         HashedComponentPatchMap map = new HashedComponentPatchMap(addedComponents, removedComponents);
-        return Optional.of(new HashedStack(stack.getType(), stack.getAmount(), map));
+        return new HashedStack(stack.getType(), stack.getAmount(), map);
     }
 
     /**
