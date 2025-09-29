@@ -368,6 +368,10 @@ public class PacketWrapper<T extends PacketWrapper<T>> {
         ByteBufHelper.writeInt(buffer, value);
     }
 
+    public long readUnsignedInt() {
+        return ByteBufHelper.readUnsignedInt(buffer);
+    }
+
     public int readMedium() {
         return ByteBufHelper.readMedium(buffer);
     }
@@ -643,6 +647,10 @@ public class PacketWrapper<T extends PacketWrapper<T>> {
 
     public void writeShort(int value) {
         ByteBufHelper.writeShort(buffer, value);
+    }
+
+    public void writeShortLE(int value) {
+        ByteBufHelper.writeShortLE(buffer, value);
     }
 
     public int readVarShort() {
