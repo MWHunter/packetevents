@@ -18,7 +18,6 @@
 
 package io.github.retrooper.packetevents.bukkit;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -28,29 +27,23 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * Used on Paper 1.21.7 and 1.21.8 because of changes due to their Configuration API;
- * This is a variant of the pre-1.20.5 {@link InternalBukkitListener}, as Paper
- * no longer creates a {@link Player} object during the configuration phase to align with vanilla.
+ * Used on Paper 1.21.9+ because the event we previously used is now called in a different
+ * place, during the configuration phase.<br/>
+ * There is no replacement for this event we used, so now we are not able to get the player instance
+ * before the server starts sending play packets to the player. This is not good.
  */
 @NullMarked
 @ApiStatus.Internal
-public class InternalPaperListener implements Listener {
+public class InternalPaperJoinListener implements Listener {
 
     private final InternalBukkitListener delegate;
 
-    public InternalPaperListener(Plugin plugin) {
+    public InternalPaperJoinListener(Plugin plugin) {
         this.delegate = new InternalBukkitListener(plugin);
     }
 
-    // this may seem like a random event to choose, but this is the first event which
-    // is called after the player object has been created; note that we can't extract
-    // the reference to the player's connection yet, like before 1.20.5
-    @SuppressWarnings("removal")
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onSpawnLocation(org.spigotmc.event.player.PlayerSpawnLocationEvent event) {
-        this.delegate.onPreJoin(event.getPlayer());
-    }
-
+    // TODO somehow manage to the get player instance before the
+    //   server starts sending play packets
     @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(PlayerJoinEvent event) {
         this.delegate.onPostJoin(event.getPlayer());
