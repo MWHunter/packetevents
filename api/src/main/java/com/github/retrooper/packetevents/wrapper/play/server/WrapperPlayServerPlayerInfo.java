@@ -250,12 +250,11 @@ public class WrapperPlayServerPlayerInfo extends PacketWrapper<WrapperPlayServer
             this(displayName, userProfile, gameMode, null, ping);
         }
 
-        @Nullable
-        public UserProfile getUserProfile() {
+        public @Nullable UserProfile getUserProfile() {
             return userProfile;
         }
 
-        public void setUserProfile(UserProfile userProfile) {
+        public void setUserProfile(@Nullable UserProfile userProfile) {
             this.userProfile = userProfile;
         }
 
@@ -265,6 +264,22 @@ public class WrapperPlayServerPlayerInfo extends PacketWrapper<WrapperPlayServer
 
         public void setSignatureData(SignatureData signatureData) {
             this.signatureData = signatureData;
+        }
+
+        /**
+         * @deprecated duplicate, use {@link #getUserProfile()} instead
+         */
+        @Deprecated
+        public @Nullable UserProfile getUser() {
+            return this.userProfile;
+        }
+
+        /**
+         * @deprecated duplicate, use {@link #setUserProfile(UserProfile)} instead
+         */
+        @Deprecated
+        public void setUser(@Nullable UserProfile userProfile) {
+            this.userProfile = userProfile;
         }
 
         @Nullable
