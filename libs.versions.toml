@@ -9,7 +9,6 @@ bstats = "3.1.0"
 paper = "1.20.6-R0.1-SNAPSHOT"
 bungeecord = "1.21-R0.1"
 velocity = "3.4.0-SNAPSHOT"
-run-paper = "2.3.1"
 fabric-loom = "1.11.4"
 spongeGradle = "2.3.0"
 classgraph = "4.8.179"
@@ -42,7 +41,5 @@ adventure = ["adventure-api", "adventure-nbt", "adventure-key", "adventure-exami
 adventure-serializers = ["adventure-text-serializer-gson", "adventure-text-serializer-json-legacy", "adventure-text-serializer-legacy"]
 
 [plugins]
-run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-paper" }
-run-velocity = { id = "xyz.jpenilla.run-velocity", version.ref = "run-paper" }
 fabric-loom = { id = "fabric-loom", version.ref = "fabric-loom" }
 spongeGradle = { id = "org.spongepowered.gradle.plugin", version.ref = "spongeGradle" }
