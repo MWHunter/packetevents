@@ -28,7 +28,7 @@ import org.jspecify.annotations.NullMarked;
 /**
  * Mojang name: ClientboundDebugBlockValuePacket
  *
- * @since 1.21.9
+ * @versions 1.21.9+
  */
 @NullMarked
 public class WrapperPlayServerDebugBlockValue extends PacketWrapper<WrapperPlayServerDebugBlockValue> {

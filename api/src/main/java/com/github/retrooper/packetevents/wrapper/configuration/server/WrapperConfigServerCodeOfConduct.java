@@ -26,7 +26,7 @@ import org.jspecify.annotations.NullMarked;
 /**
  * Mojang name: ClientboundCodeOfConductPacket
  *
- * @since 1.21.9
+ * @versions 1.21.9+
  */
 @NullMarked
 public class WrapperConfigServerCodeOfConduct extends PacketWrapper<WrapperConfigServerCodeOfConduct> {

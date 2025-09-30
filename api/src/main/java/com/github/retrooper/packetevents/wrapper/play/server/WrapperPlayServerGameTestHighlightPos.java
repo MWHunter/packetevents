@@ -19,63 +19,63 @@
 package com.github.retrooper.packetevents.wrapper.play.server;
 
 import com.github.retrooper.packetevents.event.PacketSendEvent;
-import com.github.retrooper.packetevents.protocol.debug.DebugSubscription;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * Mojang name: ClientboundDebugEntityValuePacket
+ * Mojang name: ClientboundGameTestHighlightPosPacket
  *
  * @versions 1.21.9+
  */
 @NullMarked
-public class WrapperPlayServerDebugEntityValue extends PacketWrapper<WrapperPlayServerDebugEntityValue> {
+public class WrapperPlayServerGameTestHighlightPos extends PacketWrapper<WrapperPlayServerGameTestHighlightPos> {
 
-    private int entityId;
-    private DebugSubscription.Update<?> update;
+    private Vector3i absolutePos;
+    private Vector3i relativePos;
 
-    public WrapperPlayServerDebugEntityValue(PacketSendEvent event) {
+    public WrapperPlayServerGameTestHighlightPos(PacketSendEvent event) {
         super(event);
     }
 
-    public WrapperPlayServerDebugEntityValue(int entityId, DebugSubscription.Update<?> update) {
-        super(PacketType.Play.Server.DEBUG_ENTITY_VALUE);
-        this.entityId = entityId;
-        this.update = update;
+    public WrapperPlayServerGameTestHighlightPos(Vector3i absolutePos, Vector3i relativePos) {
+        super(PacketType.Play.Server.GAME_TEST_HIGHLIGHT_POS);
+        this.absolutePos = absolutePos;
+        this.relativePos = relativePos;
     }
 
     @Override
     public void read() {
-        this.entityId = this.readVarInt();
-        this.update = DebugSubscription.Update.read(this);
+        this.absolutePos = this.readBlockPosition();
+        this.relativePos = this.readBlockPosition();
     }
 
     @Override
     public void write() {
-        this.writeVarInt(this.entityId);
-        DebugSubscription.Update.write(this, this.update);
+        this.writeBlockPosition(this.absolutePos);
+        this.writeBlockPosition(this.relativePos);
     }
 
     @Override
-    public void copy(WrapperPlayServerDebugEntityValue wrapper) {
-        this.entityId = wrapper.entityId;
-        this.update = wrapper.update;
+    public void copy(WrapperPlayServerGameTestHighlightPos wrapper) {
+        this.absolutePos = wrapper.absolutePos;
+        this.relativePos = wrapper.relativePos;
     }
 
-    public int getEntityId() {
-        return this.entityId;
+    public Vector3i getAbsolutePos() {
+        return this.absolutePos;
     }
 
-    public void setEntityId(int entityId) {
-        this.entityId = entityId;
+    public void setAbsolutePos(Vector3i absolutePos) {
+        this.absolutePos = absolutePos;
     }
 
-    public DebugSubscription.Update<?> getUpdate() {
-        return this.update;
+    public Vector3i getRelativePos() {
+        return this.relativePos;
     }
 
-    public void setUpdate(DebugSubscription.Update<?> update) {
-        this.update = update;
+    public void setRelativePos(Vector3i relativePos) {
+        this.relativePos = relativePos;
     }
 }

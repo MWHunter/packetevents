@@ -22,7 +22,6 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.particle.Particle;
-import com.github.retrooper.packetevents.protocol.particle.data.ParticleData;
 import com.github.retrooper.packetevents.protocol.particle.type.ParticleTypes;
 import com.github.retrooper.packetevents.protocol.sound.Sound;
 import com.github.retrooper.packetevents.protocol.sound.Sounds;
@@ -113,18 +112,31 @@ public class WrapperPlayServerExplosion extends PacketWrapper<WrapperPlayServerE
                 smallParticle, particle, blockInteraction, explosionSound);
     }
 
-    public WrapperPlayServerExplosion(Vector3d position, float strength, List<Vector3i> records, Vector3d playerMotion,
-                                      Particle<?> smallParticle, Particle<?> particle,
-                                      BlockInteraction blockInteraction, Sound explosionSound) {
+    public WrapperPlayServerExplosion(
+            Vector3d position, float strength, List<Vector3i> records, Vector3d playerMotion,
+            Particle<?> smallParticle, Particle<?> particle,
+            BlockInteraction blockInteraction, Sound explosionSound
+    ) {
+        this(position, strength, records, playerMotion, smallParticle, particle,
+                blockInteraction, explosionSound, new WeightedList<>());
+    }
+
+    public WrapperPlayServerExplosion(
+            Vector3d position, float strength, List<Vector3i> records, Vector3d playerMotion,
+            Particle<?> smallParticle, Particle<?> particle,
+            BlockInteraction blockInteraction, Sound explosionSound, WeightedList<ParticleInfo> blockParticles
+    ) {
         super(PacketType.Play.Server.EXPLOSION);
         this.position = position;
         this.strength = strength;
+        this.blockCount = records.size();
         this.records = records;
         this.knockback = playerMotion;
         this.smallParticle = smallParticle;
         this.particle = particle;
         this.blockInteraction = blockInteraction;
         this.explosionSound = explosionSound;
+        this.blockParticles = blockParticles;
     }
 
     public WrapperPlayServerExplosion(
@@ -140,11 +152,23 @@ public class WrapperPlayServerExplosion extends PacketWrapper<WrapperPlayServerE
             Vector3d position, @Nullable Vector3d playerMotion,
             Particle<?> particle, Sound explosionSound
     ) {
+        this(position, 0f, 0, playerMotion,
+                particle, explosionSound, new WeightedList<>());
+    }
+
+    public WrapperPlayServerExplosion(
+            Vector3d position, float strength, int blockCount,
+            @Nullable Vector3d playerMotion, Particle<?> particle,
+            Sound explosionSound, WeightedList<ParticleInfo> blockParticles
+    ) {
         super(PacketType.Play.Server.EXPLOSION);
         this.position = position;
+        this.strength = strength;
+        this.blockCount = blockCount;
         this.knockback = playerMotion;
         this.particle = particle;
         this.explosionSound = explosionSound;
+        this.blockParticles = blockParticles;
     }
 
     @Override
@@ -275,7 +299,7 @@ public class WrapperPlayServerExplosion extends PacketWrapper<WrapperPlayServerE
         particle = wrapper.particle;
         blockInteraction = wrapper.blockInteraction;
         explosionSound = wrapper.explosionSound;
-        blockParticles = wrapper.blockParticles
+        blockParticles = wrapper.blockParticles;
     }
 
     private Vector3i toFloor(Vector3d position) {

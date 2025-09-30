@@ -21,7 +21,7 @@ package com.github.retrooper.packetevents.protocol.debug.path;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * @since 1.21.9
+ * @versions 1.21.9+
  */
 @NullMarked
 public enum DebugPathType {

@@ -28,7 +28,7 @@ import java.util.Set;
 /**
  * Network structure for representing vanilla pathfinder paths.
  *
- * @since 1.21.9
+ * @versions 1.21.9+
  */
 @NullMarked
 public final class DebugPath {

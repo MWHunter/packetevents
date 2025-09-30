@@ -25,7 +25,7 @@ import org.jspecify.annotations.NullMarked;
 import java.util.List;
 
 /**
- * @since 1.21.9
+ * @versions 1.21.9+
  */
 @NullMarked
 public final class DebugStructureInfos {

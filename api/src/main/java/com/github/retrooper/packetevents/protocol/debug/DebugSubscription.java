@@ -24,7 +24,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 /**
- * @since 1.21.9
+ * @versions 1.21.9+
  */
 @NullMarked
 public interface DebugSubscription<T> extends MappedEntity {

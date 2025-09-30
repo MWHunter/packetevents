@@ -23,7 +23,7 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * @since 1.21.9
+ * @versions 1.21.9+
  */
 @NullMarked
 public final class DebugNeighborUpdateInfo {
