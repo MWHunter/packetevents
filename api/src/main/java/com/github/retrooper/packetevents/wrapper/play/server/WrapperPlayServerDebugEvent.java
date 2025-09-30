@@ -39,7 +39,7 @@ public class WrapperPlayServerDebugEvent extends PacketWrapper<WrapperPlayServer
     }
 
     public WrapperPlayServerDebugEvent(DebugSubscription.Event<?> event) {
-        super(PacketType.Play.Server.DEBUG_ENTITY_VALUE);
+        super(PacketType.Play.Server.DEBUG_EVENT);
         this.event = event;
     }
 
