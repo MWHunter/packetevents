@@ -1920,8 +1920,8 @@ public final class ItemTypes {
             }
 
             // reset to start of buffer
-            ByteBufHelper.resetReaderIndex(byteBuf);
-            ByteBufHelper.resetWriterIndex(byteBuf);
+            ByteBufHelper.readerIndex(byteBuf, 0);
+            ByteBufHelper.writerIndex(byteBuf, 0);
 
             // empty values are serialized as a single byte (smaller than an empty byte array),
             // so just parse byte array tag values
@@ -1931,9 +1931,13 @@ public final class ItemTypes {
                 ByteBufHelper.writeBytes(byteBuf, bytes);
             }
 
-            // read from shared buffer
-            Object compValue = compType.read(wrapper);
-            components.set((ComponentType<Object>) compType, compValue);
+            try {
+                // read from shared buffer
+                Object compValue = compType.read(wrapper);
+                components.set((ComponentType<Object>) compType, compValue);
+            } catch (Throwable throwable) {
+                throw new IllegalStateException("Failed to read " + compType, throwable);
+            }
 
             // ensure the entire component value has been read
             int wi = ByteBufHelper.writerIndex(byteBuf);
