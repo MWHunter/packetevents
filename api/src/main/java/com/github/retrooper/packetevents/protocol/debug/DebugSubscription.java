@@ -43,9 +43,10 @@ public interface DebugSubscription<T> extends MappedEntity {
             this.value = value;
         }
 
-        public static <T> Event<T> read(PacketWrapper<?> wrapper) {
-            DebugSubscription<T> subscription = wrapper.readMappedEntity(DebugSubscriptions.getRegistry());
-            T value = subscription.read(wrapper);
+        public static Event<?> read(PacketWrapper<?> wrapper) {
+            @SuppressWarnings("unchecked")
+            DebugSubscription<? super Object> subscription = (DebugSubscription<? super Object>) wrapper.readMappedEntity(DebugSubscriptions.getRegistry());
+            Object value = subscription.read(wrapper);
             return new Event<>(subscription, value);
         }
 
@@ -73,9 +74,10 @@ public interface DebugSubscription<T> extends MappedEntity {
             this.value = value;
         }
 
-        public static <T> Update<T> read(PacketWrapper<?> wrapper) {
-            DebugSubscription<T> subscription = wrapper.readMappedEntity(DebugSubscriptions.getRegistry());
-            T value = wrapper.readOptional(subscription::read);
+        public static Update<?> read(PacketWrapper<?> wrapper) {
+            @SuppressWarnings("unchecked")
+            DebugSubscription<? super Object> subscription = (DebugSubscription<? super Object>) wrapper.readMappedEntity(DebugSubscriptions.getRegistry());
+            Object value = wrapper.readOptional(subscription::read);
             return new Update<>(subscription, value);
         }
 
