@@ -1391,6 +1391,21 @@ public class PacketWrapper<T extends PacketWrapper<T>> {
         }
     }
 
+    public <K> Set<K> readSet(Reader<K> reader) {
+        return this.readCollection(HashSet::new, reader);
+    }
+
+    public <K> Set<K> readSet(Reader<K> reader, int maxSize) {
+        return this.readCollection(HashSet::new, reader, maxSize);
+    }
+
+    public <K> void writeSet(Set<K> set, Writer<K> writer) {
+        this.writeVarInt(set.size());
+        for (K key : set) {
+            writer.accept(this, key);
+        }
+    }
+
     @SuppressWarnings("unchecked") // not unchecked
     public <K> K[] readArray(Reader<K> reader, Class<K> clazz) {
         int length = this.readVarInt();
