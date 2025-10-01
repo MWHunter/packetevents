@@ -79,7 +79,7 @@ public final class ItemProfile {
         boolean partial;
         if (wrapper.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_21_9)) {
             partial = profile.name == null || profile.id == null;
-            wrapper.writeBoolean(partial);
+            wrapper.writeBoolean(!partial);
         } else {
             // always partial profile (which is way simpler, why did they change this?)
             partial = true;
