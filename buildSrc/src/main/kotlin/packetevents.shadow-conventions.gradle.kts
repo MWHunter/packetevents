@@ -38,7 +38,7 @@ tasks {
         val shadowJar = shadowJar.get()
         val sourceSets = project.extensions.getByType<SourceSetContainer>()
 
-        manifest.inheritFrom(shadowJar.manifest)
+        manifest.from(shadowJar.manifest)
 
         from(sourceSets.main.get().output)
         configurations = shadowJar.configurations
