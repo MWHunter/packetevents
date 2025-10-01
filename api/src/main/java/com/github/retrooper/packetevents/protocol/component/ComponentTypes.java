@@ -39,6 +39,7 @@ import com.github.retrooper.packetevents.protocol.component.builtin.ShulkerColor
 import com.github.retrooper.packetevents.protocol.component.builtin.TropicalFishBaseColorComponent;
 import com.github.retrooper.packetevents.protocol.component.builtin.TropicalFishPatternColorComponent;
 import com.github.retrooper.packetevents.protocol.component.builtin.TropicalFishPatternComponent;
+import com.github.retrooper.packetevents.protocol.component.builtin.TypedBlockEntityData;
 import com.github.retrooper.packetevents.protocol.component.builtin.TypedEntityData;
 import com.github.retrooper.packetevents.protocol.component.builtin.VillagerVariantComponent;
 import com.github.retrooper.packetevents.protocol.component.builtin.WolfCollarComponent;
@@ -253,8 +254,11 @@ public final class ComponentTypes {
             .legacyMap(TypedEntityData::getCompound, TypedEntityData::new);
     public static final ComponentType<NBTCompound> BUCKET_ENTITY_DATA = define("bucket_entity_data",
             PacketWrapper::readNBT, PacketWrapper::writeNBT);
-    public static final ComponentType<NBTCompound> BLOCK_ENTITY_DATA = define("block_entity_data",
-            PacketWrapper::readNBT, PacketWrapper::writeNBT);
+    public static final ComponentType<TypedBlockEntityData> TYPED_BLOCK_ENTITY_DATA = define("block_entity_data",
+            TypedBlockEntityData::read, TypedBlockEntityData::write);
+    @Deprecated
+    public static final ComponentType<NBTCompound> BLOCK_ENTITY_DATA = TYPED_BLOCK_ENTITY_DATA
+            .legacyMap(TypedBlockEntityData::getCompound, TypedBlockEntityData::new);
     public static final ComponentType<ItemInstrument> ITEM_INSTRUMENT = define("instrument",
             ItemInstrument::read, ItemInstrument::write);
     @Deprecated

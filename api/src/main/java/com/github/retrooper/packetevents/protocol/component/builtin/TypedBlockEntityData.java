@@ -19,49 +19,49 @@
 package com.github.retrooper.packetevents.protocol.component.builtin;
 
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import com.github.retrooper.packetevents.protocol.world.blockentity.BlockEntityType;
+import com.github.retrooper.packetevents.protocol.world.blockentity.BlockEntityTypes;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.Objects;
 
 @NullMarked
-public final class TypedEntityData {
+public final class TypedBlockEntityData {
 
-    private static final EntityType FALLBACK_TYPE = EntityTypes.PIG;
+    private static final BlockEntityType FALLBACK_TYPE = BlockEntityTypes.FURNACE;
 
     /**
      * @versions 1.21.9+
      */
-    private final EntityType type;
+    private final BlockEntityType type;
     private final NBTCompound compound;
 
-    public TypedEntityData(NBTCompound compound) {
+    public TypedBlockEntityData(NBTCompound compound) {
         this(FALLBACK_TYPE, compound);
     }
 
-    public TypedEntityData(EntityType type, NBTCompound compound) {
+    public TypedBlockEntityData(BlockEntityType type, NBTCompound compound) {
         this.type = type;
         this.compound = compound;
     }
 
-    public static TypedEntityData read(PacketWrapper<?> wrapper) {
-        EntityType type = wrapper.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_21_9)
-                ? wrapper.readMappedEntity(EntityTypes.getRegistry()) : FALLBACK_TYPE;
+    public static TypedBlockEntityData read(PacketWrapper<?> wrapper) {
+        BlockEntityType type = wrapper.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_21_9)
+                ? wrapper.readMappedEntity(BlockEntityTypes.getRegistry()) : FALLBACK_TYPE;
         NBTCompound compound = wrapper.readNBT();
-        return new TypedEntityData(type, compound);
+        return new TypedBlockEntityData(type, compound);
     }
 
-    public static void write(PacketWrapper<?> wrapper, TypedEntityData data) {
+    public static void write(PacketWrapper<?> wrapper, TypedBlockEntityData data) {
         if (wrapper.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_21_9)) {
             wrapper.writeMappedEntity(data.type);
         }
         wrapper.writeNBT(data.compound);
     }
 
-    public EntityType getType() {
+    public BlockEntityType getType() {
         return this.type;
     }
 
@@ -72,7 +72,7 @@ public final class TypedEntityData {
     @Override
     public boolean equals(Object obj) {
         if (obj == null || this.getClass() != obj.getClass()) return false;
-        TypedEntityData that = (TypedEntityData) obj;
+        TypedBlockEntityData that = (TypedBlockEntityData) obj;
         if (!this.type.equals(that.type)) return false;
         return this.compound.equals(that.compound);
     }
