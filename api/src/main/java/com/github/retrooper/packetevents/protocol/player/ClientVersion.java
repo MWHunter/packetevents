@@ -112,6 +112,9 @@ public enum ClientVersion {
      * 1.21.7 and 1.21.8 have the same protocol version.
      */
     V_1_21_7(772),
+    /**
+     * 1.21.9 and 1.21.10 have the same protocol version.
+     */
     V_1_21_9(773),
     //TODO UPDATE Add new protocol version field
 
