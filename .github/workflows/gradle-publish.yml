@@ -27,6 +27,16 @@ jobs:
       - name: Build with Gradle
         run: chmod +x gradlew && ./gradlew build
 
+      - name: Copy Final JARs
+        run: |
+          cp build/libs/packetevents-api-*.jar api/build/libs/
+          cp build/libs/packetevents-spigot-*.jar spigot/build/libs/
+          cp build/libs/packetevents-netty-common-*.jar netty-common/build/libs/
+          cp build/libs/packetevents-bungeecord-*.jar bungeecord/build/libs/
+          cp build/libs/packetevents-velocity-*.jar velocity/build/libs/
+          cp build/libs/packetevents-fabric-*.jar fabric/build/libs/
+          cp build/libs/packetevents-sponge-*.jar sponge/build/libs/  
+
       - name: Upload build artifacts api
         uses: actions/upload-artifact@v4
         with:
