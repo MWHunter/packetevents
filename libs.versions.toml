@@ -9,7 +9,7 @@ bstats = "3.1.0"
 paper = "1.21.9-rc1-R0.1-SNAPSHOT"
 bungeecord = "1.21-R0.1"
 velocity = "3.4.0-SNAPSHOT"
-fabric-loom = "1.11.4"
+fabric-loom = "1.11.8"
 spongeGradle = "2.3.0"
 classgraph = "4.8.179"
 
