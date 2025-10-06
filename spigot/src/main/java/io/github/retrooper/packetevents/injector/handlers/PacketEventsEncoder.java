@@ -44,9 +44,12 @@ import org.bukkit.plugin.Plugin;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 public class PacketEventsEncoder extends ChannelOutboundHandlerAdapter {
 
+    public static final Object COMPRESSION_ENABLED_EVENT = paperCompressionEnabledEvent();
     private static final boolean NETTY_4_1_0;
 
     static {
@@ -65,7 +68,9 @@ public class PacketEventsEncoder extends ChannelOutboundHandlerAdapter {
     public Player player;
     private boolean handledCompression = COMPRESSION_ENABLED_EVENT != null;
     private ChannelPromise promise;
-    public static final Object COMPRESSION_ENABLED_EVENT = paperCompressionEnabledEvent();
+
+    private final Queue<QueuedMessage> queuedMessages = new ArrayDeque<>();
+    private boolean hold = false;
 
     public PacketEventsEncoder(User user) {
         this.user = user;
@@ -76,6 +81,21 @@ public class PacketEventsEncoder extends ChannelOutboundHandlerAdapter {
         player = ((PacketEventsEncoder) encoder).player;
         handledCompression = ((PacketEventsEncoder) encoder).handledCompression;
         promise = ((PacketEventsEncoder) encoder).promise;
+    }
+
+    public void setHold(Channel ch, boolean hold) throws Exception {
+        if (this.hold == hold) {
+            return;
+        }
+        this.hold = hold;
+        // write all queued messages
+        if (!hold && !this.queuedMessages.isEmpty()) {
+            ChannelHandlerContext ctx = ch.pipeline().context(this);
+            QueuedMessage queued;
+            while ((queued = this.queuedMessages.poll()) != null) {
+                this.write(ctx, queued.message, queued.promise);
+            }
+        }
     }
 
     private @Nullable PacketSendEvent handleClientBoundPacket(Channel channel, User user, Object player, ByteBuf buffer, ChannelPromise promise) throws Exception {
@@ -92,12 +112,18 @@ public class PacketEventsEncoder extends ChannelOutboundHandlerAdapter {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+        // if we are told to hold all messages, add them to the queue
+        if (this.hold && msg instanceof ByteBuf) {
+            this.queuedMessages.add(new QueuedMessage(msg, promise));
+            return;
+        }
+
         // We must restore the old promise (in case we are stacking promises such as sending packets on send event)
         // If the old promise was successful, set it to null to avoid memory leaks.
         ChannelPromise oldPromise = this.promise != null && !this.promise.isSuccess() ? this.promise : null;
         if (NETTY_4_1_0) {
             // "unvoid" will just make sure we can actually add listeners to this promise...
-            // since 1.21.6, mojang will give us void promises as they don't care about the result
+            // since 1.21.6, mojang will give us void promises when they don't care about the result
             promise = promise.unvoid();
         }
         promise.addListener(p -> this.promise = oldPromise);
@@ -120,6 +146,19 @@ public class PacketEventsEncoder extends ChannelOutboundHandlerAdapter {
         }
 
         ctx.write(msg, promise);
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) {
+        // release queued messages to prevent memory leaks
+        // when this handler gets removed from the pipeline
+        QueuedMessage entry;
+        while ((entry = this.queuedMessages.poll()) != null) {
+            ReferenceCountUtil.release(entry.message);
+            if (NETTY_4_1_0 && entry.promise != null && !entry.promise.isVoid()) {
+                entry.promise.setFailure(new IllegalStateException(this + " got dropped from pipeline " + ctx.channel()));
+            }
+        }
     }
 
     @Override
@@ -213,5 +252,16 @@ public class PacketEventsEncoder extends ChannelOutboundHandlerAdapter {
             return true;
         }
         return false;
+    }
+
+    private static final class QueuedMessage {
+
+        private final Object message;
+        private final ChannelPromise promise;
+
+        public QueuedMessage(Object message, ChannelPromise promise) {
+            this.message = message;
+            this.promise = promise;
+        }
     }
 }

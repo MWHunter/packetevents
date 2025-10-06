@@ -22,4 +22,5 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.java.diff.utils)
     implementation(libs.mod.publish)
+    implementation(libs.runtask)
 }
