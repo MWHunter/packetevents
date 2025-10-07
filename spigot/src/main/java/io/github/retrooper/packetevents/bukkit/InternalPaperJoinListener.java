@@ -68,7 +68,7 @@ public class InternalPaperJoinListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onLogin(PlayerConnectionValidateLoginEvent event) {
-        if (event.getKickMessage() != null) {
+        if (!event.isAllowed()) {
             return; // player will be kicked
         }
         if (!(event.getConnection() instanceof PlayerConfigurationConnection)) {
