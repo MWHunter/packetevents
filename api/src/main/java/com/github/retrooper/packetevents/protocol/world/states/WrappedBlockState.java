@@ -1569,15 +1569,16 @@ public class WrappedBlockState {
     }
 
     /**
-     * This method is helpful if you want to check if a block can be
-     * waterlogged, or has other properties.
-     * <p>
-     * Unless you know what you are doing exactly, don't touch this method!
+     * Unless you know exactly what you are doing, don't touch this method!
      * It can result in invalid block types when modified directly
      */
     @Deprecated
     public Map<StateValue, Object> getInternalData() {
         return data;
+    }
+
+    public boolean hasProperty(StateValue property) {
+        return data.containsKey(property);
     }
 
     /**
