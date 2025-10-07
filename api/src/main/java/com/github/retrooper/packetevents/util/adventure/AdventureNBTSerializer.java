@@ -22,6 +22,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.dialog.Dialog;
 import com.github.retrooper.packetevents.protocol.nbt.*;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.TextureProperty;
 import com.github.retrooper.packetevents.util.UniqueIdUtil;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import net.kyori.adventure.key.Key;
@@ -31,6 +32,9 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.DataComponentValue;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.*;
+import net.kyori.adventure.text.object.ObjectContents;
+import net.kyori.adventure.text.object.PlayerHeadObjectContents;
+import net.kyori.adventure.text.object.SpriteObjectContents;
 import net.kyori.adventure.text.serializer.ComponentSerializer;
 import net.kyori.adventure.text.serializer.gson.BackwardCompatUtil;
 import org.jetbrains.annotations.Contract;
@@ -189,6 +193,9 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
         Key nbtStorage = reader.readUTF("storage", Key::key);
         List<Component> extra = reader.readList("extra", tag -> this.deserializeComponentList(tag, wrapper));
         Component separator = reader.read("separator", tag -> this.deserialize(tag, wrapper));
+        NBTReader player = reader.child("player");
+        String atlas = reader.readUTF("atlas", Function.identity());
+        String sprite = reader.readUTF("sprite", Function.identity());
         Style style = this.deserializeStyle(compound, wrapper);
 
         // build component from read values
@@ -232,6 +239,42 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
             } else {
                 throw new IllegalStateException("Illegal nbt component, block/entity/storage is missing");
             }
+        } else if (player != null) {
+            PlayerHeadObjectContents.Builder playerHeadBuilder = ObjectContents.playerHead()
+                    .name(player.readUTF("name", Function.identity()))
+                    .id(player.readIntArray("id", UniqueIdUtil::fromIntArray))
+                    .hat(Optional.ofNullable(player.readBoolean("hat", Function.identity())).orElse(true));
+
+            List<PlayerHeadObjectContents.ProfileProperty> profileProperties = player.readList("properties", properties -> {
+                List<PlayerHeadObjectContents.ProfileProperty> profilePropertiesList = new ArrayList<>(properties.size());
+                for (Object prop : properties) {
+                    if (prop instanceof NBTCompound) {
+                        NBTReader propReader = new NBTReader((NBTCompound) prop);
+                        String name = propReader.readUTF("name", Function.identity());
+                        String value = propReader.readUTF("value", Function.identity());
+                        String signature = propReader.readUTF("signature", Function.identity());
+                        profilePropertiesList.add(PlayerHeadObjectContents.property(name, value, signature));
+                    } else {
+                        throw new IllegalStateException("Illegal profile property format");
+                    }
+                }
+
+                return profilePropertiesList;
+            });
+
+            if (profileProperties != null) {
+                playerHeadBuilder.profileProperties(profileProperties);
+            }
+
+            builder = Component.object()
+                    .contents(playerHeadBuilder.build());
+        } else if (sprite != null) {
+            SpriteObjectContents spriteObjectContents = atlas == null
+                    ? ObjectContents.sprite(Key.key(sprite))
+                    : ObjectContents.sprite(Key.key(atlas), Key.key(sprite));
+
+            builder = Component.object()
+                    .contents(spriteObjectContents);
         } else {
             throw new IllegalStateException("Illegal nbt component, component type could not be determined");
         }
@@ -336,6 +379,62 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
                 // nbt storage key
                 Key storage = ((StorageNBTComponent) component).storage();
                 writer.writeUTF("storage", storage.asString());
+            }
+        } else if (component instanceof ObjectComponent) {
+            // object
+            ObjectContents objectContents = ((ObjectComponent) component).contents();
+            if (objectContents instanceof PlayerHeadObjectContents) {
+                // player head object
+                NBTWriter player = writer.child("player");
+
+                PlayerHeadObjectContents playerHead = ((PlayerHeadObjectContents) objectContents);
+
+                if (!playerHead.hat()) {
+                    player.writeBoolean("hat", false);
+                }
+
+                String playerHeadName = playerHead.name();
+                if (playerHeadName != null) {
+                    player.writeUTF("name", playerHeadName);
+                }
+
+                UUID playerHeadId = playerHead.id();
+                if (playerHeadId != null) {
+                    player.writeIntArray("id",  UniqueIdUtil.toIntArray(playerHeadId));
+                }
+
+                // profile properties
+                List<PlayerHeadObjectContents.ProfileProperty> profiledProperties = playerHead.profileProperties();
+                if (!profiledProperties.isEmpty()) {
+                    NBTList<NBTCompound> properties = new NBTList<>(NBTType.COMPOUND);
+                    for (PlayerHeadObjectContents.ProfileProperty profileProperty : profiledProperties) {
+                        NBTCompound prop = new NBTCompound();
+                        prop.setTag("name", new NBTString(profileProperty.name()));
+
+                        String signature = profileProperty.signature();
+                        if (signature != null) {
+                            prop.setTag("signature", new NBTString(signature));
+                        }
+
+                        prop.setTag("value", new NBTString(profileProperty.value()));
+
+                        properties.addTag(prop);
+                    }
+
+                    player.compound.setTag("properties", properties);
+                }
+
+            } else if (objectContents instanceof SpriteObjectContents) {
+                // sprite object
+                SpriteObjectContents spriteObjectContents = ((SpriteObjectContents) objectContents);
+
+                // atlas
+                if (!spriteObjectContents.atlas().equals(SpriteObjectContents.DEFAULT_ATLAS)) {
+                    writer.writeUTF("atlas", spriteObjectContents.atlas().value());
+                }
+
+                // sprite
+                writer.writeUTF("sprite", spriteObjectContents.sprite().value());
             }
         }
 
