@@ -194,7 +194,6 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
         List<Component> extra = reader.readList("extra", tag -> this.deserializeComponentList(tag, wrapper));
         Component separator = reader.read("separator", tag -> this.deserialize(tag, wrapper));
         NBTReader player = reader.child("player");
-        String atlas = reader.readUTF("atlas", Function.identity());
         String sprite = reader.readUTF("sprite", Function.identity());
         Style style = this.deserializeStyle(compound, wrapper);
 
@@ -269,12 +268,14 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
             builder = Component.object()
                     .contents(playerHeadBuilder.build());
         } else if (sprite != null) {
-            SpriteObjectContents spriteObjectContents = atlas == null
-                    ? ObjectContents.sprite(Key.key(sprite))
-                    : ObjectContents.sprite(Key.key(atlas), Key.key(sprite));
-
-            builder = Component.object()
-                    .contents(spriteObjectContents);
+            String atlas = reader.readUTF("atlas", Function.identity());
+            if (atlas != null) {
+                builder = Component.object()
+                        .contents(ObjectContents.sprite(Key.key(atlas), Key.key(sprite)));
+            } else {
+                builder = Component.object()
+                        .contents(ObjectContents.sprite(Key.key(sprite)));
+            }
         } else {
             throw new IllegalStateException("Illegal nbt component, component type could not be determined");
         }
@@ -400,7 +401,7 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
 
                 UUID playerHeadId = playerHead.id();
                 if (playerHeadId != null) {
-                    player.writeIntArray("id",  UniqueIdUtil.toIntArray(playerHeadId));
+                    player.writeIntArray("id", UniqueIdUtil.toIntArray(playerHeadId));
                 }
 
                 // profile properties
