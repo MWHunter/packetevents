@@ -22,7 +22,6 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.dialog.Dialog;
 import com.github.retrooper.packetevents.protocol.nbt.*;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import com.github.retrooper.packetevents.protocol.player.TextureProperty;
 import com.github.retrooper.packetevents.util.UniqueIdUtil;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import net.kyori.adventure.key.Key;
@@ -382,23 +381,25 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
                 writer.writeUTF("storage", storage.asString());
             }
         } else if (component instanceof ObjectComponent) {
-            // object
+            // object contents
             ObjectContents objectContents = ((ObjectComponent) component).contents();
             if (objectContents instanceof PlayerHeadObjectContents) {
                 // player head object
                 NBTWriter player = writer.child("player");
-
                 PlayerHeadObjectContents playerHead = ((PlayerHeadObjectContents) objectContents);
 
+                // player head hat
                 if (!playerHead.hat()) {
                     player.writeBoolean("hat", false);
                 }
 
+                // player name
                 String playerHeadName = playerHead.name();
                 if (playerHeadName != null) {
                     player.writeUTF("name", playerHeadName);
                 }
 
+                // player uuid
                 UUID playerHeadId = playerHead.id();
                 if (playerHeadId != null) {
                     player.writeIntArray("id", UniqueIdUtil.toIntArray(playerHeadId));
@@ -410,13 +411,17 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
                     NBTList<NBTCompound> properties = new NBTList<>(NBTType.COMPOUND);
                     for (PlayerHeadObjectContents.ProfileProperty profileProperty : profiledProperties) {
                         NBTCompound prop = new NBTCompound();
+
+                        // property name
                         prop.setTag("name", new NBTString(profileProperty.name()));
 
+                        // property signature
                         String signature = profileProperty.signature();
                         if (signature != null) {
                             prop.setTag("signature", new NBTString(signature));
                         }
 
+                        // property value
                         prop.setTag("value", new NBTString(profileProperty.value()));
 
                         properties.addTag(prop);
@@ -424,7 +429,6 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
 
                     player.compound.setTag("properties", properties);
                 }
-
             } else if (objectContents instanceof SpriteObjectContents) {
                 // sprite object
                 SpriteObjectContents spriteObjectContents = ((SpriteObjectContents) objectContents);
