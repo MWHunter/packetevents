@@ -242,6 +242,7 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
                     .name(player.readUTF("name", Function.identity()))
                     .id(player.readIntArray("id", UniqueIdUtil::fromIntArray))
                     .hat(Optional.ofNullable(player.readBoolean("hat", Function.identity())).orElse(true));
+                    .hat(Optional.ofNullable(reader.readBoolean("hat", Function.identity())).orElse(true));
 
             List<PlayerHeadObjectContents.ProfileProperty> profileProperties = player.readList("properties", properties -> {
                 List<PlayerHeadObjectContents.ProfileProperty> profilePropertiesList = new ArrayList<>(properties.size());
@@ -390,7 +391,7 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
 
                 // player head hat
                 if (!playerHead.hat()) {
-                    player.writeBoolean("hat", false);
+                    writer.writeBoolean("hat", false);
                 }
 
                 // player name
