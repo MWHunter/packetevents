@@ -133,7 +133,8 @@ public final class SpigotReflectionUtil {
             CREATE_REGISTRY_RESOURCE_KEY, GET_REGISTRY_OR_THROW, GET_DIMENSION_TYPES, GET_REGISTRY_ID,
             NBT_ACCOUNTER_UNLIMITED_HEAP, CHUNK_CACHE_GET_IBLOCKACCESS, CHUNK_CACHE_GET_ICHUNKACCESS,
             IBLOCKACCESS_GET_BLOCK_DATA, CHUNK_GET_BLOCK_DATA, PLAYER_CHUNK_MAP_GET_PLAYER_CHUNK, PLAYER_CHUNK_GET_CHUNK,
-            LEGACY_DATA_WATCHER_WRITE_METHOD, CLIENTBOUND_SET_ENTITY_DATA_PACKET_WRITE_DATA_WATCHER_METHOD, GET_DATA_VALUE_FROM_DATA_ITEM_METHOD;
+            LEGACY_DATA_WATCHER_WRITE_METHOD, CLIENTBOUND_SET_ENTITY_DATA_PACKET_WRITE_DATA_WATCHER_METHOD, GET_DATA_VALUE_FROM_DATA_ITEM_METHOD,
+            GET_TPS;
 
     //Constructors
     private static Constructor<?> NMS_ITEM_STACK_CONSTRUCTOR, NMS_PACKET_DATA_SERIALIZER_CONSTRUCTOR,
@@ -287,6 +288,7 @@ public final class SpigotReflectionUtil {
         LEGACY_DATA_WATCHER_WRITE_METHOD = Reflection.getMethod(DATA_WATCHER_CLASS, void.class, 0, NMS_PACKET_DATA_SERIALIZER_CLASS);
         CLIENTBOUND_SET_ENTITY_DATA_PACKET_WRITE_DATA_WATCHER_METHOD = Reflection.getMethod(CLIENTBOUND_SET_ENTITY_DATA_PACKET_CLASS, 0, List.class, REGISTRY_FRIENDLY_BYTE_BUF);
         GET_DATA_VALUE_FROM_DATA_ITEM_METHOD = Reflection.getMethod(DATA_WATCHER_ITEM_CLASS, DATA_WATCHER_VALUE_CLASS, 0);
+        GET_TPS = Reflection.getMethod(Server.class, "getTPS");
     }
 
     private static void initFields() {
@@ -509,6 +511,13 @@ public final class SpigotReflectionUtil {
     }
 
     public static double[] recentTPS() {
+        if (GET_TPS != null) {
+            try {
+                return (double[]) GET_TPS.invoke(Bukkit.getServer());
+            } catch (IllegalAccessException | InvocationTargetException exception) {
+                throw new RuntimeException(exception);
+            }
+        }
         return new ReflectionObject(getMinecraftServerInstance(Bukkit.getServer()), MINECRAFT_SERVER_CLASS).readDoubleArray(0);
     }
 
