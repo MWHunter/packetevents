@@ -271,7 +271,7 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
             } else {
                 builder = Component.text();
             }
-        } else if (sprite != null && version.isNewerThanOrEquals(ClientVersion.V_1_21_9)) {
+        } else if (sprite != null) {
             if (BackwardCompatUtil.IS_4_25_0_OR_NEWER && version.isNewerThanOrEquals(ClientVersion.V_1_21_9)) {
                 String atlas = reader.readUTF("atlas", Function.identity());
                 if (atlas != null) {
