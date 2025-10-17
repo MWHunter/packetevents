@@ -1,7 +1,7 @@
 /*
  * This file is part of adventure, licensed under the MIT License.
  *
- * Copyright (c) 2017-2024 KyoriPowered
+ * Copyright (c) 2017-2025 KyoriPowered
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,13 +25,13 @@ package net.kyori.adventure.text.serializer.gson;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonParseException;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import net.kyori.adventure.key.Key;
@@ -43,13 +43,14 @@ import net.kyori.option.OptionState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static net.kyori.adventure.text.serializer.json.JSONComponentConstants.SHOW_ITEM_COMPONENTS;
-import static net.kyori.adventure.text.serializer.json.JSONComponentConstants.SHOW_ITEM_COUNT;
-import static net.kyori.adventure.text.serializer.json.JSONComponentConstants.SHOW_ITEM_ID;
+import static net.kyori.adventure.text.serializer.commons.ComponentTreeConstants.SHOW_ITEM_COMPONENTS;
+import static net.kyori.adventure.text.serializer.commons.ComponentTreeConstants.SHOW_ITEM_COUNT;
+import static net.kyori.adventure.text.serializer.commons.ComponentTreeConstants.SHOW_ITEM_ID;
 
 final class ShowItemSerializer extends TypeAdapter<HoverEvent.ShowItem> {
     @SuppressWarnings("deprecation")
-    private static final String LEGACY_SHOW_ITEM_TAG = net.kyori.adventure.text.serializer.json.JSONComponentConstants.SHOW_ITEM_TAG;
+    private static final String LEGACY_SHOW_ITEM_TAG = net.kyori.adventure.text.serializer.commons.ComponentTreeConstants.SHOW_ITEM_TAG;
+    private static final String DATA_COMPONENT_REMOVAL_PREFIX = "!";
 
     private final Gson gson;
     private final boolean emitDefaultQuantity;
@@ -84,21 +85,9 @@ final class ShowItemSerializer extends TypeAdapter<HoverEvent.ShowItem> {
             } else if (fieldName.equals(LEGACY_SHOW_ITEM_TAG)) {
                 final JsonToken token = in.peek();
                 if (token == JsonToken.STRING || token == JsonToken.NUMBER) {
-                    // packetevents patch start
-                    if (BackwardCompatUtil.IS_4_10_0_OR_NEWER) {
-                        nbt = BinaryTagHolder.binaryTagHolder(in.nextString());
-                    } else {
-                        nbt = BinaryTagHolder.of(in.nextString());
-                    }
-                    // packetevents patch end
+                    nbt = BinaryTagHolder.binaryTagHolder(in.nextString());
                 } else if (token == JsonToken.BOOLEAN) {
-                    // packetevents patch start
-                    if (BackwardCompatUtil.IS_4_10_0_OR_NEWER) {
-                        nbt = BinaryTagHolder.binaryTagHolder(String.valueOf(in.nextBoolean()));
-                    } else {
-                        nbt = BinaryTagHolder.of(String.valueOf(in.nextBoolean()));
-                    }
-                    // packetevents patch end
+                    nbt = BinaryTagHolder.binaryTagHolder(String.valueOf(in.nextBoolean()));
                 } else if (token == JsonToken.NULL) {
                     in.nextNull();
                 } else {
@@ -107,12 +96,22 @@ final class ShowItemSerializer extends TypeAdapter<HoverEvent.ShowItem> {
             } else if (fieldName.equals(SHOW_ITEM_COMPONENTS)) {
                 in.beginObject();
                 while (in.peek() != JsonToken.END_OBJECT) {
-                    final Key id = Key.key(in.nextName());
+                    final String name = in.nextName();
+                    final Key id;
+                    final boolean removed;
+                    if (name.startsWith(DATA_COMPONENT_REMOVAL_PREFIX)) {
+                        id = Key.key(name.substring(1));
+                        removed = true;
+                    } else {
+                        id = Key.key(name);
+                        removed = false;
+                    }
+
                     final JsonElement tree = this.gson.fromJson(in, JsonElement.class);
                     if (dataComponents == null) {
                         dataComponents = new HashMap<>();
                     }
-                    dataComponents.put(id, GsonDataComponentValue.gsonDataComponentValue(tree));
+                    dataComponents.put(id, removed ? DataComponentValue.removed() : GsonDataComponentValue.gsonDataComponentValue(tree));
                 }
                 in.endObject();
             } else {
@@ -128,9 +127,7 @@ final class ShowItemSerializer extends TypeAdapter<HoverEvent.ShowItem> {
         if (dataComponents != null) {
             return HoverEvent.ShowItem.showItem(key, count, dataComponents);
         } else {
-            // packetevents patch start
-            return BackwardCompatUtil.createShowItem(key, count, nbt);
-            // packetevents patch end
+            return HoverEvent.ShowItem.showItem(key, count, nbt);
         }
     }
 
@@ -147,14 +144,19 @@ final class ShowItemSerializer extends TypeAdapter<HoverEvent.ShowItem> {
             out.value(count);
         }
 
-        final @NotNull Map<Key, DataComponentValue> dataComponents = !BackwardCompatUtil.IS_4_17_0_OR_NEWER
-                ? Collections.emptyMap() : value.dataComponents();
+        final @NotNull Map<Key, DataComponentValue> dataComponents = value.dataComponents();
         if (!dataComponents.isEmpty() && this.itemDataMode != JSONOptions.ShowItemHoverDataMode.EMIT_LEGACY_NBT) {
             out.name(SHOW_ITEM_COMPONENTS);
             out.beginObject();
             for (final Map.Entry<Key, GsonDataComponentValue> entry : value.dataComponentsAs(GsonDataComponentValue.class).entrySet()) {
-                out.name(entry.getKey().asString());
-                this.gson.toJson(entry.getValue().element(), out);
+                final JsonElement el = entry.getValue().element();;
+                if (el instanceof JsonNull) { // removed
+                    out.name(DATA_COMPONENT_REMOVAL_PREFIX + entry.getKey().asString());
+                    out.beginObject().endObject();
+                } else {
+                    out.name(entry.getKey().asString());
+                    this.gson.toJson(el, out);
+                }
             }
             out.endObject();
         } else if (this.itemDataMode != JSONOptions.ShowItemHoverDataMode.EMIT_DATA_COMPONENTS) {

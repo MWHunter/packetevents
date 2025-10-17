@@ -1,7 +1,7 @@
 /*
  * This file is part of adventure, licensed under the MIT License.
  *
- * Copyright (c) 2017-2024 KyoriPowered
+ * Copyright (c) 2017-2025 KyoriPowered
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -159,10 +159,6 @@ public interface GsonComponentSerializer extends JSONComponentSerializer, Builda
         @Override
         @NotNull Builder legacyHoverEventSerializer(final net.kyori.adventure.text.serializer.json.@Nullable LegacyHoverEventSerializer serializer);
 
-        // packetevents patch start
-        @NotNull Builder showAchievementToComponent(final BackwardCompatUtil.@Nullable ShowAchievementToComponent compatShowAchievement);
-        // packetevents patch end
-
         /**
          * {@inheritDoc}
          *
@@ -171,7 +167,7 @@ public interface GsonComponentSerializer extends JSONComponentSerializer, Builda
         @Deprecated
         @Override
         default @NotNull Builder emitLegacyHoverEvent() {
-            return this.editOptions(b -> b.value(JSONOptions.EMIT_HOVER_EVENT_TYPE, JSONOptions.HoverEventValueMode.BOTH));
+            return this.editOptions(b -> b.value(JSONOptions.EMIT_HOVER_EVENT_TYPE, JSONOptions.HoverEventValueMode.ALL));
         }
 
         /**
