@@ -246,7 +246,7 @@ public final class ItemProfile {
             ResourceLocation body = wrapper.readOptional(ResourceLocation::read);
             ResourceLocation cape = wrapper.readOptional(ResourceLocation::read);
             ResourceLocation elytra = wrapper.readOptional(ResourceLocation::read);
-            PlayerModelType model = wrapper.readOptional(ew -> ew.readEnum(PlayerModelType.class));
+            PlayerModelType model = wrapper.readOptional(PlayerModelType::read);
             return new SkinPatch(body, cape, elytra, model);
         }
 
@@ -254,7 +254,7 @@ public final class ItemProfile {
             wrapper.writeOptional(patch.body, ResourceLocation::write);
             wrapper.writeOptional(patch.cape, ResourceLocation::write);
             wrapper.writeOptional(patch.elytra, ResourceLocation::write);
-            wrapper.writeOptional(patch.model, PacketWrapper::writeEnum);
+            wrapper.writeOptional(patch.model, PlayerModelType::write);
         }
 
         public @Nullable ResourceLocation getBody() {

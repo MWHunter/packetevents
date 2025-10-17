@@ -18,10 +18,21 @@
 
 package com.github.retrooper.packetevents.protocol.player;
 
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public enum PlayerModelType {
+
     SLIM,
     WIDE,
+    ;
+
+    public static PlayerModelType read(PacketWrapper<?> wrapper) {
+        return wrapper.readBoolean() ? SLIM : WIDE;
+    }
+
+    public static void write(PacketWrapper<?> wrapper, PlayerModelType type) {
+        wrapper.writeBoolean(type == SLIM);
+    }
 }
