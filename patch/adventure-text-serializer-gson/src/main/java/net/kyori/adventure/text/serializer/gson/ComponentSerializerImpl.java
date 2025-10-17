@@ -137,7 +137,7 @@ final class ComponentSerializerImpl extends TypeAdapter<Component> {
         String text = null;
         String translate = null;
         String translateFallback = null;
-        List<TranslationArgument> translateWith = null;
+        List<? extends net.kyori.adventure.text.ComponentLike> translateWith = null; // packetevents patch
         String scoreName = null;
         String scoreObjective = null;
         String scoreValue = null;
@@ -151,7 +151,7 @@ final class ComponentSerializerImpl extends TypeAdapter<Component> {
         Component separator = null;
         Key atlas = null;
         Key sprite = null;
-        PlayerHeadObjectContents.Builder playerHeadContents = null;
+        Object playerHeadContents0 = null; // packetevents patch
         boolean playerHeadContentsHasProfile = false;
 
         in.beginObject();
@@ -164,7 +164,13 @@ final class ComponentSerializerImpl extends TypeAdapter<Component> {
             } else if (fieldName.equals(TRANSLATE_FALLBACK)) {
                 translateFallback = in.nextString();
             } else if (fieldName.equals(TRANSLATE_WITH)) {
-                translateWith = this.gson.fromJson(in, TRANSLATABLE_ARGUMENT_LIST_TYPE);
+                // packetevents patch start
+                if (BackwardCompatUtil.IS_4_15_0_OR_NEWER) {
+                    translateWith = this.gson.fromJson(in, TRANSLATABLE_ARGUMENT_LIST_TYPE);
+                } else {
+                    translateWith = this.gson.fromJson(in, COMPONENT_LIST_TYPE);
+                }
+                // packetevents patch end
             } else if (fieldName.equals(SCORE)) {
                 in.beginObject();
                 while (in.hasNext()) {
@@ -205,8 +211,12 @@ final class ComponentSerializerImpl extends TypeAdapter<Component> {
                 atlas = this.gson.fromJson(in, SerializerFactory.KEY_TYPE);
             } else if (fieldName.equals(OBJECT_SPRITE)) {
                 sprite = this.gson.fromJson(in, SerializerFactory.KEY_TYPE);
-            } else if (fieldName.equals(OBJECT_PLAYER)) {
+                // packetevents patch start
+            } else if (BackwardCompatUtil.IS_4_25_0_OR_NEWER && fieldName.equals(OBJECT_PLAYER)) {
+                PlayerHeadObjectContents.Builder playerHeadContents = (PlayerHeadObjectContents.Builder) playerHeadContents0;
                 if (playerHeadContents == null) playerHeadContents = ObjectContents.playerHead();
+                playerHeadContents0 = playerHeadContents;
+                // packetevents patch end
                 final JsonToken playerToken = in.peek();
                 // `player` can be either just the name or a partial profile
                 if (playerToken == JsonToken.STRING) {
@@ -249,9 +259,11 @@ final class ComponentSerializerImpl extends TypeAdapter<Component> {
                 } else {
                     in.skipValue();
                 }
-            } else if (fieldName.equals(OBJECT_HAT)) {
-                if (playerHeadContents == null) playerHeadContents = ObjectContents.playerHead();
-                playerHeadContents.hat(in.nextBoolean());
+                // packetevents patch start
+            } else if (BackwardCompatUtil.IS_4_25_0_OR_NEWER && fieldName.equals(OBJECT_HAT)) {
+                if (playerHeadContents0 == null) playerHeadContents0 = ObjectContents.playerHead();
+                ((PlayerHeadObjectContents.Builder) playerHeadContents0).hat(in.nextBoolean());
+                // packetevents patch end
             } else {
                 style.add(fieldName, this.gson.fromJson(in, JsonElement.class));
             }
@@ -261,11 +273,20 @@ final class ComponentSerializerImpl extends TypeAdapter<Component> {
         if (text != null) {
             builder = Component.text().content(text);
         } else if (translate != null) {
+            // packetevents patch start
+            TranslatableComponent.Builder i18nBuilder;
+            builder = i18nBuilder = Component.translatable().key(translate);
             if (translateWith != null) {
-                builder = Component.translatable().key(translate).fallback(translateFallback).arguments(translateWith);
-            } else {
-                builder = Component.translatable().key(translate).fallback(translateFallback);
+                if (BackwardCompatUtil.IS_4_15_0_OR_NEWER) {
+                    i18nBuilder.arguments(translateWith);
+                } else {
+                    i18nBuilder.args(translateWith);
+                }
             }
+            if (BackwardCompatUtil.IS_4_13_0_OR_NEWER) {
+                i18nBuilder.fallback(translateFallback);
+            }
+            // packetevents patch end
         } else if (scoreName != null && scoreObjective != null) {
             if (scoreValue == null) {
                 builder = Component.score().name(scoreName).objective(scoreObjective);
@@ -291,8 +312,10 @@ final class ComponentSerializerImpl extends TypeAdapter<Component> {
                     atlas != null ? atlas : SpriteObjectContents.DEFAULT_ATLAS,
                     sprite
             ));
-        } else if (playerHeadContents != null && playerHeadContentsHasProfile) {
-            builder = Component.object().contents(playerHeadContents.build());
+            // packetevents patch start
+        } else if (playerHeadContents0 != null && playerHeadContentsHasProfile) {
+            builder = Component.object().contents(((PlayerHeadObjectContents.Builder) playerHeadContents0).build());
+            // packetevents patch end
         } else {
             throw notSureHowToDeserialize(in.getPath());
         }
@@ -346,15 +369,29 @@ final class ComponentSerializerImpl extends TypeAdapter<Component> {
             final TranslatableComponent translatable = (TranslatableComponent) value;
             out.name(TRANSLATE);
             out.value(translatable.key());
-            final @Nullable String fallback = translatable.fallback();
-            if (fallback != null) {
-                out.name(TRANSLATE_FALLBACK);
-                out.value(fallback);
+            // packetevents patch start
+            if (BackwardCompatUtil.IS_4_13_0_OR_NEWER) {
+                final @Nullable String fallback = translatable.fallback();
+                if (fallback != null) {
+                    out.name(TRANSLATE_FALLBACK);
+                    out.value(fallback);
+                }
             }
-            if (!translatable.arguments().isEmpty()) {
+            boolean argsPresent;
+            if (BackwardCompatUtil.IS_4_15_0_OR_NEWER){
+                argsPresent = !translatable.arguments().isEmpty();
+            } else  {
+                argsPresent = !translatable.args().isEmpty();
+            }
+            if (argsPresent) {
                 out.name(TRANSLATE_WITH);
-                this.gson.toJson(translatable.arguments(), TRANSLATABLE_ARGUMENT_LIST_TYPE, out);
+                if (BackwardCompatUtil.IS_4_15_0_OR_NEWER) {
+                    this.gson.toJson(translatable.arguments(), TRANSLATABLE_ARGUMENT_LIST_TYPE, out);
+                } else {
+                    this.gson.toJson(translatable.args(), COMPONENT_LIST_TYPE, out);
+                }
             }
+            // packetevents patch end
         } else if (value instanceof ScoreComponent) {
             final ScoreComponent score = (ScoreComponent) value;
             out.name(SCORE);
@@ -395,7 +432,7 @@ final class ComponentSerializerImpl extends TypeAdapter<Component> {
             } else {
                 throw notSureHowToSerialize(value);
             }
-        } else if (value instanceof ObjectComponent) {
+        } else if (BackwardCompatUtil.IS_4_25_0_OR_NEWER && value instanceof ObjectComponent) { // packetevents patch
             final ObjectComponent objectComponent = (ObjectComponent) value;
             final ObjectContents contents = objectComponent.contents();
             if (contents instanceof SpriteObjectContents) {

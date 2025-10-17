@@ -54,19 +54,32 @@ final class SerializerFactory implements TypeAdapterFactory {
     static final Class<String> STRING_TYPE = String.class;
     static final Class<TextColorWrapper> COLOR_WRAPPER_TYPE = TextColorWrapper.class;
     static final Class<TextColor> COLOR_TYPE = TextColor.class;
-    static final Class<ShadowColor> SHADOW_COLOR_TYPE = ShadowColor.class;
+    static final Class<?> SHADOW_COLOR_TYPE; // packetevents patch
     static final Class<TextDecoration> TEXT_DECORATION_TYPE = TextDecoration.class;
     static final Class<BlockNBTComponent.Pos> BLOCK_NBT_POS_TYPE = BlockNBTComponent.Pos.class;
     static final Class<UUID> UUID_TYPE = UUID.class;
-    static final Class<TranslationArgument> TRANSLATION_ARGUMENT_TYPE = TranslationArgument.class;
-    static final Class<PlayerHeadObjectContents.ProfileProperty> PROFILE_PROPERTY_TYPE = PlayerHeadObjectContents.ProfileProperty.class;
+    static final Class<?> TRANSLATION_ARGUMENT_TYPE; // packetevents patch
+    static final Class<?> PROFILE_PROPERTY_TYPE; // packetevents patch
+
+    // packetevents patch start
+    static {
+        TRANSLATION_ARGUMENT_TYPE = BackwardCompatUtil.IS_4_15_0_OR_NEWER
+                ? TranslationArgument.class : null;
+        SHADOW_COLOR_TYPE = BackwardCompatUtil.IS_4_18_0_OR_NEWER
+                ? ShadowColor.class : null;
+        PROFILE_PROPERTY_TYPE = BackwardCompatUtil.IS_4_25_0_OR_NEWER
+                ? PlayerHeadObjectContents.ProfileProperty.class : null;
+    }
+    // packetevents patch end
 
     private final OptionState features;
     private final net.kyori.adventure.text.serializer.json.LegacyHoverEventSerializer legacyHoverSerializer;
+    private final BackwardCompatUtil.ShowAchievementToComponent compatShowAchievement; // packetevents patch
 
-    SerializerFactory(final OptionState features, final net.kyori.adventure.text.serializer.json.@Nullable LegacyHoverEventSerializer legacyHoverSerializer) {
+    SerializerFactory(final OptionState features, final net.kyori.adventure.text.serializer.json.@Nullable LegacyHoverEventSerializer legacyHoverSerializer, final @Nullable BackwardCompatUtil.ShowAchievementToComponent compatShowAchievement) { // packetevents patch
         this.features = features;
         this.legacyHoverSerializer = legacyHoverSerializer;
+        this.compatShowAchievement = compatShowAchievement; // packetevents patch
     }
 
     @Override
@@ -78,7 +91,7 @@ final class SerializerFactory implements TypeAdapterFactory {
         } else if (KEY_TYPE.isAssignableFrom(rawType)) {
             return (TypeAdapter<T>) KeySerializer.INSTANCE;
         } else if (STYLE_TYPE.isAssignableFrom(rawType)) {
-            return (TypeAdapter<T>) StyleSerializer.create(this.legacyHoverSerializer, this.features, gson);
+            return (TypeAdapter<T>) StyleSerializer.create(this.legacyHoverSerializer, this.compatShowAchievement, this.features, gson); // packetevents patch
         } else if (CLICK_ACTION_TYPE.isAssignableFrom(rawType)) {
             return (TypeAdapter<T>) ClickEventActionSerializer.INSTANCE;
         } else if (HOVER_ACTION_TYPE.isAssignableFrom(rawType)) {
@@ -91,7 +104,7 @@ final class SerializerFactory implements TypeAdapterFactory {
             return (TypeAdapter<T>) TextColorWrapper.Serializer.INSTANCE;
         } else if (COLOR_TYPE.isAssignableFrom(rawType)) {
             return (TypeAdapter<T>) (this.features.value(JSONOptions.EMIT_RGB) ? TextColorSerializer.INSTANCE : TextColorSerializer.DOWNSAMPLE_COLOR);
-        } else if (SHADOW_COLOR_TYPE.isAssignableFrom(rawType)) {
+        } else if (BackwardCompatUtil.IS_4_18_0_OR_NEWER && SHADOW_COLOR_TYPE.isAssignableFrom(rawType)) { // packetevents patch
             return (TypeAdapter<T>) ShadowColorSerializer.create(this.features);
         } else if (TEXT_DECORATION_TYPE.isAssignableFrom(rawType)) {
             return (TypeAdapter<T>) TextDecorationSerializer.INSTANCE;
@@ -99,9 +112,9 @@ final class SerializerFactory implements TypeAdapterFactory {
             return (TypeAdapter<T>) BlockNBTComponentPosSerializer.INSTANCE;
         } else if (UUID_TYPE.isAssignableFrom(rawType)) {
             return (TypeAdapter<T>) UUIDSerializer.uuidSerializer(this.features);
-        } else if (TRANSLATION_ARGUMENT_TYPE.isAssignableFrom(rawType)) {
+        } else if (BackwardCompatUtil.IS_4_15_0_OR_NEWER && TRANSLATION_ARGUMENT_TYPE.isAssignableFrom(rawType)) { // packetevents patch
             return (TypeAdapter<T>) TranslationArgumentSerializer.create(gson);
-        } else if (PROFILE_PROPERTY_TYPE.isAssignableFrom(rawType)) {
+        } else if (BackwardCompatUtil.IS_4_25_0_OR_NEWER && PROFILE_PROPERTY_TYPE.isAssignableFrom(rawType)) { // packetevents patch
             return (TypeAdapter<T>) ProfilePropertySerializer.INSTANCE;
         } else {
             return null;
