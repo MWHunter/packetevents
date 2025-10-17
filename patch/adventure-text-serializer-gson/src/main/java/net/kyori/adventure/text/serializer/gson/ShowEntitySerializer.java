@@ -76,9 +76,7 @@ final class ShowEntitySerializer extends TypeAdapter<HoverEvent.ShowEntity> {
         }
         in.endObject();
 
-        // packetevents patch start
-        return BackwardCompatUtil.createShowEntity(type, id, name);
-        // packetevents patch end
+        return HoverEvent.ShowEntity.showEntity(type, id, name);
     }
 
     @Override

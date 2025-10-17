@@ -159,10 +159,6 @@ public interface GsonComponentSerializer extends JSONComponentSerializer, Builda
         @Override
         @NotNull Builder legacyHoverEventSerializer(final net.kyori.adventure.text.serializer.json.@Nullable LegacyHoverEventSerializer serializer);
 
-        // packetevents patch start
-        @NotNull Builder showAchievementToComponent(final BackwardCompatUtil.@Nullable ShowAchievementToComponent compatShowAchievement);
-        // packetevents patch end
-
         /**
          * {@inheritDoc}
          *
