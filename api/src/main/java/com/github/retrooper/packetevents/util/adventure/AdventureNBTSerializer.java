@@ -238,7 +238,7 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
                 throw new IllegalStateException("Illegal nbt component, block/entity/storage is missing");
             }
         } else if (player != null) {
-            if (BackwardCompatUtil.IS_4_25_0_OR_NEWER && version.isNewerThanOrEquals(ClientVersion.V_1_21_9)) {
+            if (BackwardCompatUtil.IS_4_25_0_OR_NEWER) {
                 PlayerHeadObjectContents.Builder playerHeadBuilder = ObjectContents.playerHead()
                         .name(player.readUTF("name", Function.identity()))
                         .id(player.readIntArray("id", UniqueIdUtil::fromIntArray))
@@ -272,7 +272,7 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
                 builder = Component.text();
             }
         } else if (sprite != null) {
-            if (BackwardCompatUtil.IS_4_25_0_OR_NEWER && version.isNewerThanOrEquals(ClientVersion.V_1_21_9)) {
+            if (BackwardCompatUtil.IS_4_25_0_OR_NEWER) {
                 String atlas = reader.readUTF("atlas", Function.identity());
                 if (atlas != null) {
                     builder = Component.object()
