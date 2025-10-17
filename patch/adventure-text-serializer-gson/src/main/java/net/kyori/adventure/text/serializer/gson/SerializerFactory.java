@@ -55,15 +55,34 @@ final class SerializerFactory implements TypeAdapterFactory {
     static final Class<TextDecoration> TEXT_DECORATION_TYPE = TextDecoration.class;
     static final Class<BlockNBTComponent.Pos> BLOCK_NBT_POS_TYPE = BlockNBTComponent.Pos.class;
     static final Class<UUID> UUID_TYPE = UUID.class;
-    static final Class<TranslationArgument> TRANSLATION_ARGUMENT_TYPE = TranslationArgument.class;
+    // packetevents patch start
+    static final Class<?> TRANSLATION_ARGUMENT_TYPE;
+
+    static {
+        if (BackwardCompatUtil.IS_4_15_0_OR_NEWER) {
+            TRANSLATION_ARGUMENT_TYPE = TranslationArgument.class;
+        } else {
+            TRANSLATION_ARGUMENT_TYPE = null;
+        }
+    }
+    // packetevents patch end
 
     private final OptionState features;
     private final net.kyori.adventure.text.serializer.json.LegacyHoverEventSerializer legacyHoverSerializer;
+    // packetevents patch start
+    private final BackwardCompatUtil.ShowAchievementToComponent compatShowAchievement;
+    // packetevents patch end
 
-    SerializerFactory(final OptionState features, final net.kyori.adventure.text.serializer.json.@Nullable LegacyHoverEventSerializer legacyHoverSerializer) {
+    // packetevents patch start
+    SerializerFactory(
+            final OptionState features,
+            final net.kyori.adventure.text.serializer.json.@Nullable LegacyHoverEventSerializer legacyHoverSerializer,
+            final @Nullable BackwardCompatUtil.ShowAchievementToComponent compatShowAchievement) {
         this.features = features;
         this.legacyHoverSerializer = legacyHoverSerializer;
+        this.compatShowAchievement = compatShowAchievement;
     }
+    // packetevents patch end
 
     @Override
     @SuppressWarnings("unchecked")
@@ -74,7 +93,9 @@ final class SerializerFactory implements TypeAdapterFactory {
         } else if (KEY_TYPE.isAssignableFrom(rawType)) {
             return (TypeAdapter<T>) KeySerializer.INSTANCE;
         } else if (STYLE_TYPE.isAssignableFrom(rawType)) {
-            return (TypeAdapter<T>) StyleSerializer.create(this.legacyHoverSerializer, this.features, gson);
+            // packetevents patch start
+            return (TypeAdapter<T>) StyleSerializer.create(this.legacyHoverSerializer, this.compatShowAchievement, this.features, gson);
+            // packetevents patch end
         } else if (CLICK_ACTION_TYPE.isAssignableFrom(rawType)) {
             return (TypeAdapter<T>) ClickEventActionSerializer.INSTANCE;
         } else if (HOVER_ACTION_TYPE.isAssignableFrom(rawType)) {
@@ -91,12 +112,17 @@ final class SerializerFactory implements TypeAdapterFactory {
             return (TypeAdapter<T>) TextDecorationSerializer.INSTANCE;
         } else if (BLOCK_NBT_POS_TYPE.isAssignableFrom(rawType)) {
             return (TypeAdapter<T>) BlockNBTComponentPosSerializer.INSTANCE;
-        } else if (UUID_TYPE.isAssignableFrom(rawType)) {
-            return (TypeAdapter<T>) UUIDSerializer.uuidSerializer(this.features);
-        } else if (TRANSLATION_ARGUMENT_TYPE.isAssignableFrom(rawType)) {
-            return (TypeAdapter<T>) TranslationArgumentSerializer.create(gson);
-        } else {
-            return null;
         }
+        // packetevents patch start
+        else if (BackwardCompatUtil.IS_4_15_0_OR_NEWER) {
+            if (UUID_TYPE.isAssignableFrom(rawType)) {
+                return (TypeAdapter<T>) UUIDSerializer.uuidSerializer(this.features);
+            } else if (TRANSLATION_ARGUMENT_TYPE.isAssignableFrom(rawType)) {
+                return (TypeAdapter<T>) TranslationArgumentSerializer.create(gson);
+            }
+        }
+        // packetevents patch end
+
+        return null;
     }
 }

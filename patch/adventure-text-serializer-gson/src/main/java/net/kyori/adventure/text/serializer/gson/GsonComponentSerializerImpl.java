@@ -48,24 +48,34 @@ final class GsonComponentSerializerImpl implements GsonComponentSerializer {
 
     // We cannot store these fields in GsonComponentSerializerImpl directly due to class initialisation issues.
     static final class Instances {
+        // packetevents patch start
         static final GsonComponentSerializer INSTANCE = SERVICE
                 .map(Provider::gson)
-                .orElseGet(() -> new GsonComponentSerializerImpl(JSONOptions.byDataVersion(), null));
+                .orElseGet(() -> new GsonComponentSerializerImpl(JSONOptions.byDataVersion(), null, null));
         static final GsonComponentSerializer LEGACY_INSTANCE = SERVICE
                 .map(Provider::gsonLegacy)
-                .orElseGet(() -> new GsonComponentSerializerImpl(JSONOptions.byDataVersion().at(2525 /* just before 1.16 */), null));
+                .orElseGet(() -> new GsonComponentSerializerImpl(JSONOptions.byDataVersion().at(2525 /* just before 1.16 */), null, null));
+        // packetevents patch end
     }
 
     private final Gson serializer;
     private final UnaryOperator<GsonBuilder> populator;
     private final net.kyori.adventure.text.serializer.json.@Nullable LegacyHoverEventSerializer legacyHoverSerializer;
+    // packetevents patch start
+    private final BackwardCompatUtil.@Nullable ShowAchievementToComponent compatShowAchievement;
+    // packetevents patch end
     private final OptionState flags;
 
-    GsonComponentSerializerImpl(final OptionState flags, final net.kyori.adventure.text.serializer.json.@Nullable LegacyHoverEventSerializer legacyHoverSerializer) {
+    // packetevents patch start
+    GsonComponentSerializerImpl(
+            final OptionState flags,
+            final net.kyori.adventure.text.serializer.json.@Nullable LegacyHoverEventSerializer legacyHoverSerializer,
+            final BackwardCompatUtil.@Nullable ShowAchievementToComponent compatShowAchievement) {
         this.flags = flags;
         this.legacyHoverSerializer = legacyHoverSerializer;
+        this.compatShowAchievement = compatShowAchievement;
         this.populator = builder -> {
-            builder.registerTypeAdapterFactory(new SerializerFactory(flags, legacyHoverSerializer));
+            builder.registerTypeAdapterFactory(new SerializerFactory(flags, legacyHoverSerializer, compatShowAchievement));
             return builder;
         };
         this.serializer = this.populator.apply(
@@ -73,6 +83,7 @@ final class GsonComponentSerializerImpl implements GsonComponentSerializer {
                         .disableHtmlEscaping() // to be consistent with vanilla
         ).create();
     }
+    // packetevents patch end
 
     @Override
     public @NotNull Gson serializer() {
@@ -124,6 +135,9 @@ final class GsonComponentSerializerImpl implements GsonComponentSerializer {
     static final class BuilderImpl implements Builder {
         private OptionState flags = JSONOptions.byDataVersion(); // latest
         private net.kyori.adventure.text.serializer.json.@Nullable LegacyHoverEventSerializer legacyHoverSerializer;
+        // packetevents patch start
+        private BackwardCompatUtil.@Nullable ShowAchievementToComponent compatShowAchievement;
+        // packetevents patch end
 
         BuilderImpl() {
             BUILDER.accept(this); // let service provider touch the builder before anybody else touches it
@@ -133,6 +147,9 @@ final class GsonComponentSerializerImpl implements GsonComponentSerializer {
             this();
             this.flags = serializer.flags;
             this.legacyHoverSerializer = serializer.legacyHoverSerializer;
+            // packetevents patch start
+            this.compatShowAchievement = serializer.compatShowAchievement;
+            // packetevents patch end
         }
 
         @Override
@@ -156,9 +173,15 @@ final class GsonComponentSerializerImpl implements GsonComponentSerializer {
             return this;
         }
 
+        // packetevents patch start
+        public @NotNull Builder showAchievementToComponent(final BackwardCompatUtil.@Nullable ShowAchievementToComponent compatShowAchievement) {
+            this.compatShowAchievement = compatShowAchievement;
+            return this;
+        }
+
         @Override
         public @NotNull GsonComponentSerializer build() {
-            return new GsonComponentSerializerImpl(this.flags, this.legacyHoverSerializer);
+            return new GsonComponentSerializerImpl(this.flags, this.legacyHoverSerializer, this.compatShowAchievement);
         }
     }
 }

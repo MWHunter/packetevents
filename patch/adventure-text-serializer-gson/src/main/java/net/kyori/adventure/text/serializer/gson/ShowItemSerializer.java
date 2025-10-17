@@ -31,6 +31,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import net.kyori.adventure.key.Key;
@@ -83,9 +84,21 @@ final class ShowItemSerializer extends TypeAdapter<HoverEvent.ShowItem> {
             } else if (fieldName.equals(LEGACY_SHOW_ITEM_TAG)) {
                 final JsonToken token = in.peek();
                 if (token == JsonToken.STRING || token == JsonToken.NUMBER) {
-                    nbt = BinaryTagHolder.binaryTagHolder(in.nextString());
+                    // packetevents patch start
+                    if (BackwardCompatUtil.IS_4_10_0_OR_NEWER) {
+                        nbt = BinaryTagHolder.binaryTagHolder(in.nextString());
+                    } else {
+                        nbt = BinaryTagHolder.of(in.nextString());
+                    }
+                    // packetevents patch end
                 } else if (token == JsonToken.BOOLEAN) {
-                    nbt = BinaryTagHolder.binaryTagHolder(String.valueOf(in.nextBoolean()));
+                    // packetevents patch start
+                    if (BackwardCompatUtil.IS_4_10_0_OR_NEWER) {
+                        nbt = BinaryTagHolder.binaryTagHolder(String.valueOf(in.nextBoolean()));
+                    } else {
+                        nbt = BinaryTagHolder.of(String.valueOf(in.nextBoolean()));
+                    }
+                    // packetevents patch end
                 } else if (token == JsonToken.NULL) {
                     in.nextNull();
                 } else {
@@ -115,7 +128,9 @@ final class ShowItemSerializer extends TypeAdapter<HoverEvent.ShowItem> {
         if (dataComponents != null) {
             return HoverEvent.ShowItem.showItem(key, count, dataComponents);
         } else {
-            return HoverEvent.ShowItem.showItem(key, count, nbt);
+            // packetevents patch start
+            return BackwardCompatUtil.createShowItem(key, count, nbt);
+            // packetevents patch end
         }
     }
 
@@ -132,7 +147,8 @@ final class ShowItemSerializer extends TypeAdapter<HoverEvent.ShowItem> {
             out.value(count);
         }
 
-        final @NotNull Map<Key, DataComponentValue> dataComponents = value.dataComponents();
+        final @NotNull Map<Key, DataComponentValue> dataComponents = !BackwardCompatUtil.IS_4_17_0_OR_NEWER
+                ? Collections.emptyMap() : value.dataComponents();
         if (!dataComponents.isEmpty() && this.itemDataMode != JSONOptions.ShowItemHoverDataMode.EMIT_LEGACY_NBT) {
             out.name(SHOW_ITEM_COMPONENTS);
             out.beginObject();
