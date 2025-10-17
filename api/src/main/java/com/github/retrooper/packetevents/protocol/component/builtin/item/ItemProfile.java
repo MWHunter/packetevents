@@ -27,14 +27,19 @@ import com.github.retrooper.packetevents.protocol.util.NbtCodec;
 import com.github.retrooper.packetevents.protocol.util.NbtCodecs;
 import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import net.kyori.adventure.text.object.PlayerHeadObjectContents;
+import net.kyori.adventure.text.object.PlayerHeadObjectContents.ProfileProperty;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+
+import static net.kyori.adventure.text.object.PlayerHeadObjectContents.property;
 
 @NullMarked
 public final class ItemProfile {
@@ -133,6 +138,26 @@ public final class ItemProfile {
         }
         SkinPatch.encode(compound, wrapper, profile.skinPatch);
         return compound;
+    }
+
+    public static ItemProfile fromAdventure(PlayerHeadObjectContents headContents) {
+        List<ProfileProperty> advProps = headContents.profileProperties();
+        List<Property> properties = new ArrayList<>(advProps.size());
+        for (ProfileProperty property : advProps) {
+            properties.add(Property.fromAdventure(property));
+        }
+        return new ItemProfile(headContents.name(), headContents.id(), properties);
+    }
+
+    public List<ProfileProperty> getAdventureProperties() {
+        if (this.properties.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<ProfileProperty> properties = new ArrayList<>(this.properties.size());
+        for (Property property : this.properties) {
+            properties.add(property.asAdventure());
+        }
+        return Collections.unmodifiableList(properties);
     }
 
     public @Nullable String getName() {
@@ -263,6 +288,14 @@ public final class ItemProfile {
             wrapper.writeString(property.value, 32767);
             wrapper.writeOptional(property.signature,
                     (ew, signature) -> ew.writeString(signature, 1024));
+        }
+
+        public static Property fromAdventure(ProfileProperty property) {
+            return new Property(property.name(), property.value(), property.signature());
+        }
+
+        public ProfileProperty asAdventure() {
+            return property(this.name, this.value, this.signature);
         }
 
         public String getName() {
