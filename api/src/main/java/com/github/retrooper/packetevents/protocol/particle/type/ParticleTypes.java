@@ -29,6 +29,7 @@ import com.github.retrooper.packetevents.protocol.particle.data.ParticleItemStac
 import com.github.retrooper.packetevents.protocol.particle.data.ParticlePowerData;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleSculkChargeData;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleShriekData;
+import com.github.retrooper.packetevents.protocol.particle.data.ParticleSpellData;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleTrailData;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleVibrationData;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -118,7 +119,9 @@ public final class ParticleTypes {
     public static final ParticleType<ParticleDustColorTransitionData> DUST_COLOR_TRANSITION = define("dust_color_transition",
             ParticleDustColorTransitionData::read, ParticleDustColorTransitionData::write,
             ParticleDustColorTransitionData::decode, ParticleDustColorTransitionData::encode);
-    public static final ParticleType<ParticleData> EFFECT = define("effect");
+    public static final ParticleType<ParticleSpellData> EFFECT = define("effect",
+            ParticleSpellData::read, ParticleSpellData::write,
+            ParticleSpellData::decode, ParticleSpellData::encode);
     public static final ParticleType<ParticleData> ELDER_GUARDIAN = define("elder_guardian");
     public static final ParticleType<ParticleData> ENCHANTED_HIT = define("enchanted_hit");
     public static final ParticleType<ParticleData> ENCHANT = define("enchant");
@@ -166,7 +169,9 @@ public final class ParticleTypes {
     public static final ParticleType<ParticleData> HAPPY_VILLAGER = define("happy_villager");
     public static final ParticleType<ParticleData> COMPOSTER = define("composter");
     public static final ParticleType<ParticleData> HEART = define("heart");
-    public static final ParticleType<ParticleData> INSTANT_EFFECT = define("instant_effect");
+    public static final ParticleType<ParticleSpellData> INSTANT_EFFECT = define("instant_effect",
+            ParticleSpellData::read, ParticleSpellData::write,
+            ParticleSpellData::decode, ParticleSpellData::encode);
     public static final ParticleType<ParticleItemStackData> ITEM = define("item",
             ParticleItemStackData::read, ParticleItemStackData::write,
             ParticleItemStackData::decode, ParticleItemStackData::encode);

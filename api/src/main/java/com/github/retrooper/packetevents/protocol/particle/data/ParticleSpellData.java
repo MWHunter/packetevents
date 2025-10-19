@@ -19,6 +19,7 @@
 package com.github.retrooper.packetevents.protocol.particle.data;
 
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.color.Color;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.nbt.NBTFloat;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -27,44 +28,65 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * @versions 1.21.9+
+ * @version 1.21.9+
  */
 @NullMarked
-public class ParticlePowerData extends ParticleData {
+public class ParticleSpellData extends ParticleData {
 
+    private Color color;
     private float power;
 
-    public ParticlePowerData(float power) {
+    public ParticleSpellData(Color color, float power) {
+        this.color = color;
         this.power = power;
     }
 
-    public static ParticlePowerData read(PacketWrapper<?> wrapper) {
-        float power = wrapper.getServerVersion().isOlderThan(ServerVersion.V_1_21_9) ? 1f : wrapper.readFloat();
-        return new ParticlePowerData(power);
+    public static ParticleSpellData read(PacketWrapper<?> wrapper) {
+        if (wrapper.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_21_9)) {
+            Color color = Color.read(wrapper);
+            float power = wrapper.readFloat();
+            return new ParticleSpellData(color, power);
+        }
+        return new ParticleSpellData(Color.WHITE, 1f);
     }
 
-    public static void write(PacketWrapper<?> wrapper, ParticlePowerData data) {
+    public static void write(PacketWrapper<?> wrapper, ParticleSpellData data) {
         if (wrapper.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_21_9)) {
+            Color.write(wrapper, data.color);
             wrapper.writeFloat(data.power);
         }
     }
 
     @ApiStatus.Internal
-    public static ParticlePowerData decode(NBTCompound tag, ClientVersion version) {
-        float power = tag.getNumberTagValueOrDefault("power", 1f).floatValue();
-        return new ParticlePowerData(power);
+    public static ParticleSpellData decode(NBTCompound compound, ClientVersion version) {
+        Color color = compound.getOr("color", Color::decode, Color.WHITE, null);
+        float power = compound.getNumberTagValueOrDefault("power", 1f).floatValue();
+        return new ParticleSpellData(color, power);
     }
 
     @ApiStatus.Internal
-    public static void encode(ParticlePowerData data, ClientVersion version, NBTCompound tag) {
-        if (version.isNewerThanOrEquals(ClientVersion.V_1_21_9) && data.power != 1f) {
-            tag.setTag("power", new NBTFloat(data.power));
+    public static void encode(ParticleSpellData data, ClientVersion version, NBTCompound compound) {
+        if (version.isNewerThanOrEquals(ClientVersion.V_1_21_9)) {
+            if (!Color.WHITE.equals(data.color)) {
+                compound.setTag("color", Color.encode(data.color, version));
+            }
+            if (data.power != 1f) {
+                compound.setTag("power", new NBTFloat(data.power));
+            }
         }
     }
 
     @Override
     public boolean isEmpty() {
         return false;
+    }
+
+    public Color getColor() {
+        return this.color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
     }
 
     public float getPower() {
