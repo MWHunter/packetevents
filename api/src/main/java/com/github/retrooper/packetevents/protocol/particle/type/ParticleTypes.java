@@ -18,6 +18,7 @@
 
 package com.github.retrooper.packetevents.protocol.particle.type;
 
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleBlockStateData;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleColorData;
@@ -141,7 +142,27 @@ public final class ParticleTypes {
     public static final ParticleType<ParticleData> SCULK_CHARGE_POP = define("sculk_charge_pop");
     public static final ParticleType<ParticleData> SOUL_FIRE_FLAME = define("soul_fire_flame");
     public static final ParticleType<ParticleData> SOUL = define("soul");
-    public static final ParticleType<ParticleData> FLASH = define("flash");
+    // TODO this is horrible
+    public static final ParticleType<ParticleColorData> FLASH = define("flash",
+            wrapper -> {
+                if (wrapper.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_21_9)) {
+                    return ParticleColorData.read(wrapper);
+                }
+                return new ParticleColorData(0);
+            }, (wrapper, data) -> {
+                if (wrapper.getServerVersion().isNewerThanOrEquals(ServerVersion.V_1_21_9)) {
+                    ParticleColorData.write(wrapper, data);
+                }
+            }, (compound, version) -> {
+                if (version.isNewerThanOrEquals(ClientVersion.V_1_21_9)) {
+                    return ParticleColorData.decode(compound, version);
+                }
+                return new ParticleColorData(0);
+            }, (data, version, compound) -> {
+                if (version.isNewerThanOrEquals(ClientVersion.V_1_21_9)) {
+                    ParticleColorData.encode(data, version, compound);
+                }
+            });
     public static final ParticleType<ParticleData> HAPPY_VILLAGER = define("happy_villager");
     public static final ParticleType<ParticleData> COMPOSTER = define("composter");
     public static final ParticleType<ParticleData> HEART = define("heart");
