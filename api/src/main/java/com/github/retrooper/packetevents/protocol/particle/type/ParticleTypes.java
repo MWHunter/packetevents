@@ -25,6 +25,7 @@ import com.github.retrooper.packetevents.protocol.particle.data.ParticleData;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleDustColorTransitionData;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleDustData;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleItemStackData;
+import com.github.retrooper.packetevents.protocol.particle.data.ParticlePowerData;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleSculkChargeData;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleShriekData;
 import com.github.retrooper.packetevents.protocol.particle.data.ParticleTrailData;
@@ -102,7 +103,9 @@ public final class ParticleTypes {
     public static final ParticleType<ParticleData> CLOUD = define("cloud");
     public static final ParticleType<ParticleData> CRIT = define("crit");
     public static final ParticleType<ParticleData> DAMAGE_INDICATOR = define("damage_indicator");
-    public static final ParticleType<ParticleData> DRAGON_BREATH = define("dragon_breath");
+    public static final ParticleType<ParticlePowerData> DRAGON_BREATH = define("dragon_breath",
+            ParticlePowerData::read, ParticlePowerData::write,
+            ParticlePowerData::decode, ParticlePowerData::encode);
     public static final ParticleType<ParticleData> DRIPPING_LAVA = define("dripping_lava");
     public static final ParticleType<ParticleData> FALLING_LAVA = define("falling_lava");
     public static final ParticleType<ParticleData> LANDING_LAVA = define("landing_lava");
