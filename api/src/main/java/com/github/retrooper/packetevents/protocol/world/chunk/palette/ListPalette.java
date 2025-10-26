@@ -35,11 +35,12 @@ public class ListPalette implements Palette {
 
     private final int bits;
     private final int[] data;
-    private int nextId = 0;
+    private int nextId;
 
     public ListPalette(int bitsPerEntry) {
         this.bits = bitsPerEntry;
         this.data = new int[1 << bitsPerEntry];
+        this.nextId = 0;
     }
 
     @Deprecated
@@ -61,6 +62,12 @@ public class ListPalette implements Palette {
             this.data[i] = wrapper.readVarInt();
         }
         this.nextId = paletteLength;
+    }
+
+    public ListPalette(int bitsPerEntry, int[] data) {
+        this.bits = bitsPerEntry;
+        this.data = data;
+        this.nextId = data.length;
     }
 
     @Override
