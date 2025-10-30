@@ -146,13 +146,11 @@ public class NBTList<T extends NBT> extends NBT {
         }
         List<NBT> tags = new ArrayList<>(this.tags.size());
         for (T tag : this.tags) {
-            if (!(tag instanceof NBTCompound) || ((NBTCompound) tag).size() != 1) {
+            if (!(tag instanceof NBTCompound)) {
                 continue;
             }
-            NBT wrapped = ((NBTCompound) tag).getTagOrNull("");
-            if (wrapped != null) {
-                tags.add(wrapped);
-            }
+
+            tags.add(tag);
         }
         return tags;
     }
