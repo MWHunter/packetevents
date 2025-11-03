@@ -68,6 +68,9 @@ public class ListPalette implements Palette {
         this.bits = bitsPerEntry;
         this.data = data;
         this.nextId = data.length;
+        if (this.nextId > (1 << this.bits)) {
+            throw new IllegalArgumentException("Data length exceeds the max size the bits can hold");
+        }
     }
 
     @Override
