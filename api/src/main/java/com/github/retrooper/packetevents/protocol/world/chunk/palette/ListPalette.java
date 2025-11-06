@@ -27,6 +27,8 @@ package com.github.retrooper.packetevents.protocol.world.chunk.palette;
 import com.github.retrooper.packetevents.protocol.stream.NetStreamInput;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 
+import java.util.Arrays;
+
 /**
  * A palette backed by a List.
  */
@@ -66,11 +68,13 @@ public class ListPalette implements Palette {
 
     public ListPalette(int bitsPerEntry, int[] data) {
         this.bits = bitsPerEntry;
-        this.data = data;
-        this.nextId = data.length;
-        if (this.nextId > (1 << this.bits)) {
+        final int expectedSize = (1 << this.bits);
+        if (data.length > expectedSize) {
             throw new IllegalArgumentException("Data length exceeds the max size the bits can hold");
+        } else {
+            this.data = Arrays.copyOf(data, expectedSize);
         }
+        this.nextId = data.length;
     }
 
     @Override
