@@ -476,7 +476,8 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
                     case CUSTOM:
                         Key key = clickEvent.readUTF("id", Key::key);
                         NBT payload = clickEvent.read("payload", Function.identity());
-                        value = ClickEvent.custom(key, "0b"); // TODO snbt serialization
+                        // no need for version check since custom can only exist in 1.21.6+
+                        value = ClickEvent.custom(key, new NbtTagHolder(payload != null ? payload : NBTEnd.INSTANCE));
                         break;
                     default:
                         throw new UnsupportedOperationException("Unsupported clickevent: " + action);
@@ -606,9 +607,16 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
                         child.write("dialog", Dialog.encode(wrapper, dialog));
                         break;
                     case CUSTOM:
-                        child.writeUTF("id", ((ClickEvent.Payload.Custom) clickEvent.payload()).key().asString());
-                        // TODO snbt deserialization
-                        // child.write("payload", ((ClickEvent.Payload.Custom) clickEvent.payload()).data());
+                        ClickEvent.Payload.Custom customPayload = (ClickEvent.Payload.Custom) clickEvent.payload();
+                        child.writeUTF("id", customPayload.key().asString());
+                        // write the payload field when supported
+                        if (this.version.isNewerThanOrEquals(ClientVersion.V_1_21_6)) {
+                            NbtTagHolder nbtHolder = (NbtTagHolder) customPayload.nbt();
+                            NBT payloadTag = nbtHolder.getTag();
+                            if (!(payloadTag instanceof NBTEnd)) {
+                                child.write("payload", payloadTag);
+                            }
+                        }
                         break;
                     default:
                         throw new UnsupportedOperationException("Unsupported clickevent: " + clickEvent);
