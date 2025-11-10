@@ -476,7 +476,6 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
                     case CUSTOM:
                         Key key = clickEvent.readUTF("id", Key::key);
                         NBT payload = clickEvent.read("payload", Function.identity());
-                        // no need for version check since custom can only exist in 1.21.6+
                         value = ClickEvent.custom(key, new NbtTagHolder(payload != null ? payload : NBTEnd.INSTANCE));
                         break;
                     default:
@@ -609,13 +608,10 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
                     case CUSTOM:
                         ClickEvent.Payload.Custom customPayload = (ClickEvent.Payload.Custom) clickEvent.payload();
                         child.writeUTF("id", customPayload.key().asString());
-                        // write the payload field when supported
-                        if (this.version.isNewerThanOrEquals(ClientVersion.V_1_21_6)) {
-                            NbtTagHolder nbtHolder = (NbtTagHolder) customPayload.nbt();
-                            NBT payloadTag = nbtHolder.getTag();
-                            if (!(payloadTag instanceof NBTEnd)) {
-                                child.write("payload", payloadTag);
-                            }
+                        NbtTagHolder nbtHolder = (NbtTagHolder) customPayload.nbt();
+                        NBT payloadTag = nbtHolder.getTag();
+                        if (!(payloadTag instanceof NBTEnd)) {
+                            child.write("payload", payloadTag);
                         }
                         break;
                     default:
