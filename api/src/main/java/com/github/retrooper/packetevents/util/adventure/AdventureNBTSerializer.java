@@ -21,17 +21,49 @@ package com.github.retrooper.packetevents.util.adventure;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemProfile;
 import com.github.retrooper.packetevents.protocol.dialog.Dialog;
-import com.github.retrooper.packetevents.protocol.nbt.*;
+import com.github.retrooper.packetevents.protocol.nbt.NBT;
+import com.github.retrooper.packetevents.protocol.nbt.NBTByte;
+import com.github.retrooper.packetevents.protocol.nbt.NBTByteArray;
+import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import com.github.retrooper.packetevents.protocol.nbt.NBTDouble;
+import com.github.retrooper.packetevents.protocol.nbt.NBTEnd;
+import com.github.retrooper.packetevents.protocol.nbt.NBTFloat;
+import com.github.retrooper.packetevents.protocol.nbt.NBTInt;
+import com.github.retrooper.packetevents.protocol.nbt.NBTIntArray;
+import com.github.retrooper.packetevents.protocol.nbt.NBTList;
+import com.github.retrooper.packetevents.protocol.nbt.NBTLong;
+import com.github.retrooper.packetevents.protocol.nbt.NBTLongArray;
+import com.github.retrooper.packetevents.protocol.nbt.NBTNumber;
+import com.github.retrooper.packetevents.protocol.nbt.NBTShort;
+import com.github.retrooper.packetevents.protocol.nbt.NBTString;
+import com.github.retrooper.packetevents.protocol.nbt.NBTType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.UniqueIdUtil;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.api.BinaryTagHolder;
-import net.kyori.adventure.text.*;
+import net.kyori.adventure.text.BlockNBTComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentBuilder;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.EntityNBTComponent;
+import net.kyori.adventure.text.KeybindComponent;
+import net.kyori.adventure.text.NBTComponent;
+import net.kyori.adventure.text.ObjectComponent;
+import net.kyori.adventure.text.ScoreComponent;
+import net.kyori.adventure.text.SelectorComponent;
+import net.kyori.adventure.text.StorageNBTComponent;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.DataComponentValue;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.*;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.ShadowColor;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.object.ObjectContents;
 import net.kyori.adventure.text.object.PlayerHeadObjectContents;
 import net.kyori.adventure.text.object.SpriteObjectContents;
@@ -41,7 +73,13 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -608,10 +646,20 @@ public class AdventureNBTSerializer implements ComponentSerializer<Component, Co
                     case CUSTOM:
                         ClickEvent.Payload.Custom customPayload = (ClickEvent.Payload.Custom) clickEvent.payload();
                         child.writeUTF("id", customPayload.key().asString());
-                        NbtTagHolder nbtHolder = (NbtTagHolder) customPayload.nbt();
-                        NBT payloadTag = nbtHolder.getTag();
-                        if (!(payloadTag instanceof NBTEnd)) {
-                            child.write("payload", payloadTag);
+                        BinaryTagHolder nbtHolder = customPayload.nbt();
+                        if (nbtHolder instanceof NbtTagHolder) {
+                            NBT payloadTag = ((NbtTagHolder) nbtHolder).getTag();
+                            // nbt end tag means there is no payload
+                            if (!(payloadTag instanceof NBTEnd)) {
+                                child.write("payload", payloadTag);
+                            }
+                        } else {
+                            String nbtString = nbtHolder.string();
+                            // as adventure doesn't want to make the nbt payload nullable (though it actually is),
+                            // we use an empty nbt string to mark a null payload
+                            if (!nbtString.isEmpty()) {
+                                child.write("payload", AdventureNbtUtil.fromString(nbtString));
+                            }
                         }
                         break;
                     default:
