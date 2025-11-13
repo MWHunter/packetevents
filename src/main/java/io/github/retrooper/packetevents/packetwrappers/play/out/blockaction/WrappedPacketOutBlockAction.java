@@ -23,10 +23,14 @@ import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.api.SendableWrapper;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
+import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.Material;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * This packet is used for a number of actions and animations performed by blocks, usually non-persistent.
@@ -35,7 +39,9 @@ import java.lang.reflect.Constructor;
  */
 public class WrappedPacketOutBlockAction extends WrappedPacket implements SendableWrapper {
 
+    private static boolean v_1_7_10;
     private static Constructor<?> packetConstructor;
+    private static Method getNMSBlockMethodCache = null;
     private Vector3i blockPos;
     private int actionID, actionData;
     private Material blockType;
@@ -53,8 +59,18 @@ public class WrappedPacketOutBlockAction extends WrappedPacket implements Sendab
 
     @Override
     protected void load() {
+        v_1_7_10 = version.isOlderThan(ServerVersion.v_1_8);
+        getNMSBlockMethodCache = Reflection.getMethod(NMSUtils.iBlockDataClass, "getBlock", 0);
+        if (getNMSBlockMethodCache == null) {
+            Class<?> blockDataClass = NMSUtils.iBlockDataClass.getSuperclass();
+            getNMSBlockMethodCache = Reflection.getMethod(blockDataClass, NMSUtils.blockClass, 0);
+        }
         try {
-            packetConstructor = PacketTypeClasses.Play.Server.BLOCK_ACTION.getConstructor(NMSUtils.blockPosClass, NMSUtils.blockClass, int.class, int.class);
+            if (v_1_7_10) {
+                packetConstructor = PacketTypeClasses.Play.Server.BLOCK_ACTION.getConstructor(NMSUtils.blockPosClass, NMSUtils.blockClass, int.class, int.class);
+            } else {
+                packetConstructor = PacketTypeClasses.Play.Server.BLOCK_ACTION.getConstructor(NMSUtils.blockPosClass, NMSUtils.iBlockDataClass, int.class, int.class);
+            }
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -120,7 +136,18 @@ public class WrappedPacketOutBlockAction extends WrappedPacket implements Sendab
 
     public Material getBlockType() {
         if (packet != null) {
-            return NMSUtils.getMaterialFromNMSBlock(readObject(0, NMSUtils.blockClass));
+            Object nmsBlock = null;
+            if (v_1_7_10) {
+                nmsBlock = readObject(0, NMSUtils.blockClass);
+            } else {
+                Object iBlockDataObj = readObject(0, NMSUtils.iBlockDataClass);
+                try {
+                    nmsBlock = getNMSBlockMethodCache.invoke(iBlockDataObj);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            }
+            return NMSUtils.getMaterialFromNMSBlock(nmsBlock);
         } else {
             return this.blockType;
         }
@@ -128,8 +155,14 @@ public class WrappedPacketOutBlockAction extends WrappedPacket implements Sendab
 
     public void setBlockType(Material blockType) {
         if (packet != null) {
-            final Object nmsBlock = NMSUtils.getNMSBlockFromMaterial(blockType);
-            write(NMSUtils.blockClass, 0, nmsBlock);
+            Object nmsBlock = NMSUtils.getNMSBlockFromMaterial(blockType);
+            if (v_1_7_10) {
+                write(NMSUtils.blockClass, 0, nmsBlock);
+            } else {
+                WrappedPacket nmsBlockWrapper = new WrappedPacket(new NMSPacket(nmsBlock), NMSUtils.blockClass);
+                Object iBlockData = nmsBlockWrapper.readObject(0, NMSUtils.iBlockDataClass);
+                write(NMSUtils.iBlockDataClass, 0, iBlockData);
+            }
         } else {
             this.blockType = blockType;
         }
@@ -139,6 +172,12 @@ public class WrappedPacketOutBlockAction extends WrappedPacket implements Sendab
     public Object asNMSPacket() throws Exception {
         Object nmsBlockPos = NMSUtils.generateNMSBlockPos(getBlockPosition());
         Object nmsBlock = NMSUtils.getNMSBlockFromMaterial(getBlockType());
-        return packetConstructor.newInstance(nmsBlockPos, nmsBlock, getActionId(), getActionData());
+        if (v_1_7_10) {
+            return packetConstructor.newInstance(nmsBlockPos, nmsBlock, getActionId(), getActionData());
+        } else {
+            WrappedPacket nmsBlockWrapper = new WrappedPacket(new NMSPacket(nmsBlock), NMSUtils.blockClass);
+            Object iBlockData = nmsBlockWrapper.readObject(0, NMSUtils.iBlockDataClass);
+            return packetConstructor.newInstance(nmsBlockPos, iBlockData, getActionId(), getActionData());
+        }
     }
 }
