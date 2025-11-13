@@ -22,6 +22,8 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 
@@ -113,10 +115,15 @@ public class WrapperPlayServerBlockAction extends PacketWrapper<WrapperPlayServe
     }
 
     public WrappedBlockState getBlockType() {
-        return WrappedBlockState.getByGlobalId(serverVersion.toClientVersion(), blockTypeID);
+        // The blockTypeID field represents a block type ID, not a block state ID
+        // We need to get the StateType first, then create its default block state
+        StateType stateType = StateTypes.getById(serverVersion.toClientVersion(), blockTypeID);
+        return stateType.createBlockState(serverVersion.toClientVersion());
     }
 
     public void setBlockType(WrappedBlockState blockType) {
-        this.blockTypeID = blockType.getGlobalId();
+        // Store the block type ID (not the block state ID)
+        StateType stateType = blockType.getType();
+        this.blockTypeID = StateTypes.getRegistry().getId(stateType.getMapped(), serverVersion.toClientVersion());
     }
 }
